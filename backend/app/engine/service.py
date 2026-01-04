@@ -44,6 +44,24 @@ class MLXEngineService:
     def get_supported_models(self):
         return self.models_config
 
+    def _get_dir_size_str(self, path: Path):
+        try:
+            total_size = 0
+            for dirpath, dirnames, filenames in os.walk(path):
+                for f in filenames:
+                    fp = os.path.join(dirpath, f)
+                    # skip if it is symbolic link
+                    if not os.path.islink(fp):
+                        total_size += os.path.getsize(fp)
+            
+            gb = total_size / (1024 * 1024 * 1024)
+            if gb < 1:
+                return f"{gb:.2f}GB"
+            return f"{gb:.1f}GB"
+        except Exception as e:
+            print(f"Error calculating size for {path}: {e}")
+            return "Unknown"
+
     def register_model(self, name: str, path: str, url: str = ""):
         """
         Registers a custom model.
@@ -53,10 +71,13 @@ class MLXEngineService:
              if m['name'] == name:
                  raise ValueError(f"Model with name {name} already exists.")
         
+        # Calculate size immediately
+        size_str = self._get_dir_size_str(Path(path))
+
         new_model = {
             "id": path, # Use absolute path as ID for local loading
             "name": name,
-            "size": "Custom",
+            "size": size_str,
             "family": "Custom",
             "url": url,
             "external": False, 
@@ -471,11 +492,21 @@ class MLXEngineService:
                 if Path(m["id"]).exists():
                     is_downloaded = True
                     model_path = str(Path(m["id"]))
+                    
+                    # Backfill size if missing or 'Custom'
+                    if m.get("size") == "Custom":
+                        print(f"Backfilling size for {m['name']}")
+                        new_size = self._get_dir_size_str(Path(m["id"]))
+                        m["size"] = new_size # Update in memory
+                        # We should save this back to JSON so we don't recalc every second
+                        # But loop overhead to save inside loop is bad. 
+                        # We can defer save? For now just in-memory update is visible to UI.
+                        
             else:
                 # 2. Standard Downloaded Model
                 sanitized_name = m["id"].replace("/", "--")
                 local_path = self.models_dir / sanitized_name
-                # Only check for .completed file
+                # Only check for follow-up .completed file
                 if (local_path / ".completed").exists():
                     is_downloaded = True
                     model_path = str(local_path)
@@ -573,6 +604,17 @@ class MLXEngineService:
                         print(f"Removing adapter directory: {adapter_path}")
                         shutil.rmtree(adapter_path)
                 
+                # 3. Delete files if it's a User Added Foundation Model (Absolute Path)
+                elif Path(model_id).is_absolute() and Path(model_id).exists():
+                     target_path = Path(model_id)
+                     # SAFETY CHECK: Only delete if path contains 'models' to prevent system damage
+                     if "models" in str(target_path).lower() and target_path.is_dir():
+                         import shutil
+                         print(f"Removing user model directory: {target_path}")
+                         shutil.rmtree(target_path)
+                     else:
+                         print(f"Skipping disk deletion for safety (not in 'models' folder?): {target_path}")
+
                 return True
 
             # Standard Downloaded Model Logic

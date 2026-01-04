@@ -2,199 +2,199 @@
     {
         "id": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
         "name": "TinyLlama 1.1B (Chat)",
-        "size": "2.2GB",
+        "size": "2.0GB",
         "family": "Llama"
     },
     {
         "id": "mlx-community/Llama-3.2-1B-Instruct-4bit",
         "name": "Llama 3.2 1B Instruct (4-bit)",
-        "size": "0.7GB",
+        "size": "0.65GB",
         "family": "Llama"
     },
     {
         "id": "mlx-community/Llama-3.2-1B-Instruct-8bit",
         "name": "Llama 3.2 1B Instruct (8-bit)",
-        "size": "1.3GB",
+        "size": "1.2GB",
         "family": "Llama"
     },
     {
         "id": "mlx-community/Llama-3.2-1B-Instruct-bf16",
         "name": "Llama 3.2 1B Instruct (bf16)",
-        "size": "2.6GB",
+        "size": "2.3GB",
         "family": "Llama"
     },
     {
         "id": "mlx-community/Llama-3.2-3B-Instruct-4bit",
         "name": "Llama 3.2 3B Instruct (4-bit)",
-        "size": "1.9GB",
+        "size": "1.7GB",
         "family": "Llama"
     },
     {
         "id": "mlx-community/Llama-3.2-3B-Instruct-8bit",
         "name": "Llama 3.2 3B Instruct (8-bit)",
-        "size": "3.4GB",
+        "size": "3.2GB",
         "family": "Llama"
     },
     {
         "id": "mlx-community/Llama-3.2-3B-Instruct-bf16",
         "name": "Llama 3.2 3B Instruct (bf16)",
-        "size": "6.6GB",
+        "size": "6.0GB",
         "family": "Llama"
     },
     {
         "id": "mlx-community/Meta-Llama-3.1-8B-Instruct-4bit",
         "name": "Llama 3.1 8B Instruct (4-bit)",
-        "size": "4.9GB",
+        "size": "4.2GB",
         "family": "Llama"
     },
     {
         "id": "mlx-community/Meta-Llama-3.1-8B-Instruct-8bit",
         "name": "Llama 3.1 8B Instruct (8-bit)",
-        "size": "8.5GB",
+        "size": "7.9GB",
         "family": "Llama"
     },
     {
         "id": "mlx-community/Meta-Llama-3.1-70B-Instruct-4bit",
         "name": "Llama 3.1 70B Instruct (4-bit)",
-        "size": "40GB",
+        "size": "37.0GB",
         "family": "Llama"
     },
     {
         "id": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
         "name": "Qwen 2.5 0.5B Instruct (4-bit)",
-        "size": "0.4GB",
+        "size": "0.26GB",
         "family": "Qwen"
     },
     {
         "id": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
         "name": "Qwen 2.5 1.5B Instruct (4-bit)",
-        "size": "1.0GB",
+        "size": "0.81GB",
         "family": "Qwen"
     },
     {
         "id": "mlx-community/Qwen2.5-3B-Instruct-4bit",
         "name": "Qwen 2.5 3B Instruct (4-bit)",
-        "size": "1.9GB",
+        "size": "1.6GB",
         "family": "Qwen"
     },
     {
         "id": "mlx-community/Qwen2.5-3B-Instruct-8bit",
         "name": "Qwen 2.5 3B Instruct (8-bit)",
-        "size": "3.5GB",
+        "size": "3.1GB",
         "family": "Qwen"
     },
     {
         "id": "mlx-community/Qwen2.5-3B-Instruct-bf16",
         "name": "Qwen 2.5 3B Instruct (bf16)",
-        "size": "7.0GB",
+        "size": "5.7GB",
         "family": "Qwen"
     },
     {
         "id": "mlx-community/Qwen2.5-7B-Instruct-4bit",
         "name": "Qwen 2.5 7B Instruct (4-bit)",
-        "size": "4.5GB",
+        "size": "4.0GB",
         "family": "Qwen"
     },
     {
         "id": "mlx-community/Qwen2.5-7B-Instruct-8bit",
         "name": "Qwen 2.5 7B Instruct (8-bit)",
-        "size": "8.0GB",
+        "size": "7.5GB",
         "family": "Qwen"
     },
     {
         "id": "mlx-community/Qwen2.5-14B-Instruct-4bit",
         "name": "Qwen 2.5 14B Instruct (4-bit)",
-        "size": "9.0GB",
+        "size": "7.7GB",
         "family": "Qwen"
     },
     {
         "id": "mlx-community/Qwen2.5-32B-Instruct-4bit",
         "name": "Qwen 2.5 32B Instruct (4-bit)",
-        "size": "19GB",
+        "size": "17.2GB",
         "family": "Qwen"
     },
     {
         "id": "mlx-community/Qwen2.5-72B-Instruct-4bit",
         "name": "Qwen 2.5 72B Instruct (4-bit)",
-        "size": "41GB",
+        "size": "38.1GB",
         "family": "Qwen"
     },
     {
         "id": "mlx-community/gemma-2-2b-it-4bit",
         "name": "Gemma 2 2B Instruct (4-bit)",
-        "size": "1.5GB",
+        "size": "1.4GB",
         "family": "Gemma"
     },
     {
         "id": "mlx-community/gemma-2-2b-it-8bit",
         "name": "Gemma 2 2B Instruct (8-bit)",
-        "size": "2.8GB",
+        "size": "2.6GB",
         "family": "Gemma"
     },
     {
         "id": "mlx-community/gemma-2-9b-it-4bit",
         "name": "Gemma 2 9B Instruct (4-bit)",
-        "size": "5.5GB",
+        "size": "4.8GB",
         "family": "Gemma"
     },
     {
         "id": "mlx-community/gemma-2-9b-it-8bit",
         "name": "Gemma 2 9B Instruct (8-bit)",
-        "size": "10GB",
+        "size": "9.1GB",
         "family": "Gemma"
     },
     {
         "id": "mlx-community/gemma-2-27b-it-4bit",
         "name": "Gemma 2 27B Instruct (4-bit)",
-        "size": "16GB",
+        "size": "18.6GB",
         "family": "Gemma"
     },
     {
         "id": "mlx-community/Mistral-7B-Instruct-v0.3-4bit",
         "name": "Mistral 7B Instruct v0.3 (4-bit)",
-        "size": "4.1GB",
+        "size": "3.8GB",
         "family": "Mistral"
     },
     {
         "id": "mlx-community/Mistral-7B-Instruct-v0.3-8bit",
         "name": "Mistral 7B Instruct v0.3 (8-bit)",
-        "size": "7.7GB",
+        "size": "7.2GB",
         "family": "Mistral"
     },
     {
         "id": "mlx-community/Mixtral-8x7B-Instruct-v0.1-4bit",
         "name": "Mixtral 8x7B Instruct (4-bit)",
-        "size": "24GB",
+        "size": "24.5GB",
         "family": "Mistral"
     },
     {
         "id": "mlx-community/Mixtral-8x22B-Instruct-v0.1-4bit",
         "name": "Mixtral 8x22B Instruct (4-bit)",
-        "size": "80GB",
+        "size": "73.7GB",
         "family": "Mistral"
     },
     {
         "id": "mlx-community/Phi-3.5-mini-instruct-4bit",
         "name": "Phi 3.5 Mini Instruct (4-bit)",
-        "size": "2.1GB",
+        "size": "2.0GB",
         "family": "Phi"
     },
     {
         "id": "mlx-community/Phi-3.5-mini-instruct-8bit",
         "name": "Phi 3.5 Mini Instruct (8-bit)",
-        "size": "4.0GB",
+        "size": "3.8GB",
         "family": "Phi"
     },
     {
         "id": "mlx-community/DeepSeek-Coder-V2-Lite-Instruct-4bit",
         "name": "DeepSeek Coder V2 Lite (4-bit)",
-        "size": "8.9GB",
+        "size": "8.2GB",
         "family": "DeepSeek"
     },
     {
         "id": "mlx-community/DeepSeek-V3-4bit",
         "name": "DeepSeek V3 (4-bit)",
-        "size": "300GB+",
+        "size": "351.7GB",
         "family": "DeepSeek"
     },
     {
@@ -351,5 +351,63 @@
             "dropout": 0.0,
             "lora_layers": 8
         }
+    },
+    {
+        "id": "/Users/rileycleavenger/Desktop/GitRepos/perimeter-ai/models/gemma-3-12b-it-qat-4bit",
+        "name": "gemma-3-12b-it-qat-4bit",
+        "size": "15.0GB",
+        "family": "Custom",
+        "url": "",
+        "external": false,
+        "is_custom": true
+    },
+    {
+        "id": "ft-8783bde6-0654-4bcb-85f6-b57b5ffafa66",
+        "name": "UserFM",
+        "base_model": "/Users/rileycleavenger/Desktop/GitRepos/perimeter-ai/models/gemma-3-12b-it-qat-4bit",
+        "adapter_path": "adapters/8783bde6-0654-4bcb-85f6-b57b5ffafa66",
+        "size": "Adapter",
+        "family": "Custom",
+        "is_custom": true,
+        "is_finetuned": true,
+        "params": {
+            "epochs": 7,
+            "batch_size": 1,
+            "lora_rank": 8,
+            "lora_alpha": 16.0,
+            "learning_rate": 0.0001,
+            "max_seq_len": 512,
+            "dropout": 0.0,
+            "lora_layers": 8
+        }
+    },
+    {
+        "id": "ft-c77046ad-b47f-4d22-9375-d26a049ade6f",
+        "name": "MoonGemma",
+        "base_model": "/Users/rileycleavenger/Desktop/GitRepos/perimeter-ai/models/gemma-3-12b-it-qat-4bit",
+        "adapter_path": "adapters/c77046ad-b47f-4d22-9375-d26a049ade6f",
+        "size": "Adapter",
+        "family": "Custom",
+        "is_custom": true,
+        "is_finetuned": true,
+        "params": {
+            "epochs": 100,
+            "batch_size": 1,
+            "lora_rank": 8,
+            "lora_alpha": 16.0,
+            "learning_rate": 0.001,
+            "max_seq_len": 512,
+            "dropout": 0.0,
+            "lora_layers": 16
+        }
+    },
+    {
+        "id": "/Users/rileycleavenger/Desktop/GitRepos/perimeter-ai/models/gemma-3-1b-it",
+        "name": "gemma-3-1b-it",
+        "size": "3.8GB",
+        "family": "Custom",
+        "url": "https://huggingface.co/google/gemma-3-1b-it",
+        "external": false,
+        "is_custom": true
     }
 ]

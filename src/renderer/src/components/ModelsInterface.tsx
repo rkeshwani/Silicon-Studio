@@ -73,7 +73,7 @@ export function ModelsInterface() {
     };
 
     const foundationModels = models.filter(m => {
-        if (m.is_finetuned || m.is_custom) return false;
+        if (m.is_finetuned) return false; // Only exclude fine-tuned models
 
         const matchesSearch = m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             m.id.toLowerCase().includes(searchQuery.toLowerCase());
@@ -81,7 +81,7 @@ export function ModelsInterface() {
 
         return matchesSearch && matchesFamily;
     })
-    const customModels = models.filter(m => m.is_finetuned || m.is_custom)
+    const customModels = models.filter(m => m.is_finetuned) // Only show fine-tuned models in Custom tab
 
     const handleDownload = async (modelId: string) => {
         try {
@@ -222,6 +222,11 @@ export function ModelsInterface() {
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <h3 className="font-semibold text-lg">{model.name}</h3>
+                                                {model.is_custom && (
+                                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/20 uppercase font-bold tracking-wider">
+                                                        User
+                                                    </span>
+                                                )}
 
                                                 {/* Compatibility Warning */}
                                                 {compatibility && !compatibility.compatible && (
@@ -236,12 +241,29 @@ export function ModelsInterface() {
                                                     </div>
                                                 )}
 
-                                                <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-400 border border-white/5">
-                                                    {model.size}
-                                                </span>
-                                                <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-400 border border-white/5">
-                                                    {model.family}
-                                                </span>
+                                                {model.size !== 'Custom' && (
+                                                    <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-400 border border-white/5">
+                                                        {model.size}
+                                                    </span>
+                                                )}
+                                                {model.family !== 'Custom' && (
+                                                    <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-400 border border-white/5">
+                                                        {model.family}
+                                                    </span>
+                                                )}
+
+                                                {/* Hugging Face Link */}
+                                                {model.url && (
+                                                    <a
+                                                        href={model.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 uppercase font-bold tracking-wider hover:bg-yellow-500/20 transition-colors flex items-center gap-1"
+                                                        title={model.url}
+                                                    >
+                                                        hf ↗
+                                                    </a>
+                                                )}
                                             </div>
                                             <p className="text-sm text-gray-500 font-mono mt-1">{model.id}</p>
                                         </div>

@@ -38,7 +38,7 @@ export function EngineInterface() {
 
     useEffect(() => {
         apiClient.engine.getModels().then((data: any[]) => {
-            const downloaded = data.filter(m => m.downloaded && !m.is_finetuned && !m.is_custom);
+            const downloaded = data.filter(m => m.downloaded && !m.is_finetuned);
             setModels(downloaded)
             if (downloaded.length) setSelectedModel(downloaded[0].id)
         }).catch(console.error)
