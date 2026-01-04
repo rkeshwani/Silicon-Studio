@@ -40,6 +40,23 @@ export const apiClient = {
             });
             if (!res.ok) throw new Error('Failed to preview CSV');
             return res.json();
+        },
+        convertCsv: async (file_path: string, output_path: string, instruction_col: string, input_col: string | undefined, output_col: string, strip_pii: boolean, model_family: string): Promise<any> => {
+            const res = await fetch(`${API_BASE}/api/studio/convert`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    file_path,
+                    output_path,
+                    instruction_col,
+                    input_col,
+                    output_col,
+                    strip_pii,
+                    model_family
+                })
+            });
+            if (!res.ok) throw new Error('Failed to convert CSV');
+            return res.json();
         }
     },
     shield: {

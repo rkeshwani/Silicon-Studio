@@ -4,7 +4,6 @@ import { MemoryTetris } from './components/MemoryTetris'
 import { MemoryTetrisMini } from './components/MemoryTetrisMini'
 import { ChatInterface } from './components/ChatInterface'
 import { EngineInterface } from './components/EngineInterface'
-import { ShieldInterface } from './components/ShieldInterface'
 
 import { ModelsInterface } from './components/ModelsInterface'
 
@@ -47,12 +46,6 @@ function App() {
               icon="🤖"
             />
             <SidebarItem
-              label="Shield"
-              active={activeTab === 'shield'}
-              onClick={() => setActiveTab('shield')}
-              icon="🛡️"
-            />
-            <SidebarItem
               label="Chat"
               active={activeTab === 'chat'}
               onClick={() => setActiveTab('chat')}
@@ -68,7 +61,7 @@ function App() {
         <div className="flex-1 overflow-y-auto no-drag">
           <div className={
             activeTab === 'models' ? "h-full" :
-              activeTab === 'engine' ? "max-w-7xl mx-auto h-full p-8" :
+              (activeTab === 'engine' || activeTab === 'studio') ? "max-w-7xl mx-auto h-full p-8" :
                 "max-w-4xl mx-auto h-full p-8"
           }>
             {activeTab === 'studio' && <DataStudio />}
@@ -83,7 +76,6 @@ function App() {
                 <EngineInterface />
               </div>
             )}
-            {activeTab === 'shield' && <ShieldInterface />}
             {activeTab === 'chat' && <ChatInterface />}
           </div>
         </div>

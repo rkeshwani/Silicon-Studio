@@ -16,6 +16,8 @@ class ConversionRequest(BaseModel):
     instruction_col: str
     input_col: Optional[str] = None
     output_col: str
+    strip_pii: bool = False
+    model_family: str = "Llama"
 
 @router.post("/preview")
 async def preview_csv(request: PreviewRequest):
@@ -39,8 +41,11 @@ async def convert_to_jsonl(request: ConversionRequest):
             request.output_path,
             request.instruction_col,
             request.input_col,
-            request.output_col
+            request.output_col,
+            request.strip_pii,
+            request.model_family
         )
+
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

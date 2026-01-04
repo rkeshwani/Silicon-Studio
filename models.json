@@ -311,5 +311,45 @@
             "dropout": 0.0,
             "lora_layers": 7
         }
+    },
+    {
+        "id": "ft-1d54cb56-d6a0-44dd-836c-eddbac898510",
+        "name": "Job20",
+        "base_model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        "adapter_path": "adapters/1d54cb56-d6a0-44dd-836c-eddbac898510",
+        "size": "Adapter",
+        "family": "Custom",
+        "is_custom": true,
+        "is_finetuned": true,
+        "params": {
+            "epochs": 5,
+            "batch_size": 1,
+            "lora_rank": 8,
+            "lora_alpha": 16.0,
+            "learning_rate": 0.0001,
+            "max_seq_len": 512,
+            "dropout": 0.0,
+            "lora_layers": 8
+        }
+    },
+    {
+        "id": "ft-e2f05d67-fb95-4a02-b3e0-179101214881",
+        "name": "SyntheticTest",
+        "base_model": "mlx-community/gemma-2-2b-it-4bit",
+        "adapter_path": "adapters/e2f05d67-fb95-4a02-b3e0-179101214881",
+        "size": "Adapter",
+        "family": "Custom",
+        "is_custom": true,
+        "is_finetuned": true,
+        "params": {
+            "epochs": 10,
+            "batch_size": 1,
+            "lora_rank": 8,
+            "lora_alpha": 16.0,
+            "learning_rate": 0.0001,
+            "max_seq_len": 512,
+            "dropout": 0.0,
+            "lora_layers": 8
+        }
     }
 ]

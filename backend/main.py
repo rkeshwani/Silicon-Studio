@@ -6,8 +6,6 @@ import os
 from app.api.monitor import router as monitor_router
 from app.api.studio import router as studio_router
 from app.api.engine import router as engine_router
-from app.api.shield import router as shield_router
-
 app = FastAPI(
     title="Perimeter.ai Backend",
     description="Local-first LLM fine-tuning engine",
@@ -26,7 +24,6 @@ app.add_middleware(
 app.include_router(monitor_router, prefix="/api/monitor", tags=["monitor"])
 app.include_router(studio_router, prefix="/api/studio", tags=["studio"])
 app.include_router(engine_router, prefix="/api/engine", tags=["engine"])
-app.include_router(shield_router, prefix="/api/shield", tags=["shield"])
 
 @app.get("/health")
 async def health_check():
