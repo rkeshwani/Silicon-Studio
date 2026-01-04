@@ -1,0 +1,30 @@
+{
+    "name": "perimeter-ai",
+    "version": "0.1.0",
+    "description": "Local-first LLM fine-tuning on Apple Silicon",
+    "main": "dist/main/main.js",
+    "scripts": {
+        "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:electron\"",
+        "dev:renderer": "cd src/renderer && npm run dev",
+        "dev:electron": "wait-on tcp:5173 && tsc -p src/main/tsconfig.json && electron .",
+        "build": "npm run build:renderer && npm run build:main",
+        "build:renderer": "cd src/renderer && npm run build",
+        "build:main": "tsc -p src/main/tsconfig.json",
+        "start": "electron ."
+    },
+    "keywords": [
+        "mac",
+        "llm",
+        "mlx",
+        "electron",
+        "react"
+    ],
+    "author": "Perimeter.ai",
+    "license": "MIT",
+    "devDependencies": {
+        "concurrently": "^8.2.2",
+        "electron": "^29.1.0",
+        "typescript": "^5.3.3",
+        "wait-on": "^7.2.0"
+    }
+}
