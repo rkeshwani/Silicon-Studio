@@ -26,8 +26,12 @@ export function ModelsInterface() {
         return () => clearInterval(interval)
     }, [])
 
+    const [systemStats, setSystemStats] = useState<any>(null);
+
     useEffect(() => {
         fetchModels();
+        // Fetch system stats for compatibility check
+        apiClient.monitor.getStats().then(setSystemStats).catch(console.error);
     }, []);
 
     const fetchModels = async (silent = false) => {
@@ -39,6 +43,32 @@ export function ModelsInterface() {
             setError(err.message);
         } finally {
             if (!silent) setLoading(false);
+        }
+    };
+
+    // Helper to check if model fits in RAM (with 20% overhead buffer)
+    const checkCompatibility = (sizeStr: string): { compatible: boolean, required: string } | null => {
+        if (!systemStats || !sizeStr) return null;
+
+        try {
+            const sizeValue = parseFloat(sizeStr.replace(/[^0-9.]/g, ''));
+            const isGB = sizeStr.toUpperCase().includes('GB');
+            const isMB = sizeStr.toUpperCase().includes('MB');
+
+            let sizeBytes = 0;
+            if (isGB) sizeBytes = sizeValue * 1024 * 1024 * 1024;
+            else if (isMB) sizeBytes = sizeValue * 1024 * 1024;
+            else return null;
+
+            const safeLimit = systemStats.memory.total; // Total RAM
+            const requiredBytes = sizeBytes * 1.2; // 20% overhead (OS + Context)
+
+            return {
+                compatible: requiredBytes <= safeLimit,
+                required: (requiredBytes / (1024 * 1024 * 1024)).toFixed(1) + " GB"
+            };
+        } catch (e) {
+            return null;
         }
     };
 
@@ -184,12 +214,28 @@ export function ModelsInterface() {
                     <div className="grid grid-cols-1 gap-4">
                         {foundationModels.map((model) => {
                             const isDownloading = downloading.has(model.id) || model.downloading;
+                            const compatibility = checkCompatibility(model.size);
+
                             return (
                                 <div key={model.id} className="bg-white/5 border border-white/10 rounded-xl p-6 flex items-center justify-between hover:bg-white/[0.07] transition-colors group">
                                     <div className="flex items-center gap-4">
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <h3 className="font-semibold text-lg">{model.name}</h3>
+
+                                                {/* Compatibility Warning */}
+                                                {compatibility && !compatibility.compatible && (
+                                                    <div className="group/compat relative">
+                                                        <span className="text-red-400 bg-red-500/10 border border-red-500/20 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold cursor-help">
+                                                            !
+                                                        </span>
+                                                        <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 w-48 bg-black/90 border border-red-500/30 text-xs text-white p-2 rounded-lg shadow-xl opacity-0 group-hover/compat:opacity-100 pointer-events-none transition-opacity z-10">
+                                                            <p className="font-bold text-red-300 mb-1">High RAM Warning</p>
+                                                            Requires ~{compatibility.required} RAM (Available: {systemStats ? (systemStats.memory.total / (1024 * 1024 * 1024)).toFixed(0) + " GB" : "?"})
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-400 border border-white/5">
                                                     {model.size}
                                                 </span>
