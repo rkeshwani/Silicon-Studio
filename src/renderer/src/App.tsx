@@ -8,7 +8,10 @@ import { EngineInterface } from './components/EngineInterface'
 import { ModelsInterface } from './components/ModelsInterface'
 
 function App() {
-  const [activeTab, setActiveTab] = useState('studio')
+  const [activeTab, setActiveTab] = useState('models')
+  const [hoveredTab, setHoveredTab] = useState<string | null>(null)
+
+  const displayedTab = hoveredTab || activeTab
 
   return (
     <div className="h-screen w-screen flex flex-col bg-transparent">
@@ -21,18 +24,12 @@ function App() {
       <div className="flex-1 flex overflow-hidden rounded-bl-lg rounded-br-lg border-t border-white/10 bg-[rgba(30,30,30,0.8)] backdrop-blur-xl">
 
         {/* Sidebar */}
-        <div className="w-64 bg-black/20 flex flex-col p-4 border-r border-white/5">
+        <div className="w-64 bg-black/20 flex flex-col p-4 border-r border-white/5 relative z-20">
           <div className="mb-6 px-2">
             <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Silicon Studio</h1>
           </div>
 
           <nav className="space-y-1">
-            <SidebarItem
-              label="Data Preparation"
-              active={activeTab === 'studio'}
-              onClick={() => setActiveTab('studio')}
-              icon="📊"
-            />
             <SidebarItem
               label="Models"
               active={activeTab === 'models'}
@@ -51,6 +48,35 @@ function App() {
               onClick={() => setActiveTab('chat')}
               icon="💬"
             />
+
+            <div className="pt-4 pb-2">
+              <div className="px-2 flex items-center gap-1 group relative w-fit">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Enterprise
+                </p>
+                <div className="cursor-help text-gray-600 hover:text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                  </svg>
+                </div>
+                {/* Tooltip */}
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 w-max px-3 py-1.5 bg-black/90 border border-white/10 text-xs text-white rounded-md shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap">
+                  Enterprise version coming soon
+                </div>
+              </div>
+            </div>
+
+            <LockedSidebarItem
+              label="Data Preparation"
+              icon="📊"
+              onHover={(isHovering) => setHoveredTab(isHovering ? 'studio' : null)}
+            />
+
+            <LockedSidebarItem label="Evaluations" icon="🧪" tooltip="Feature coming soon!" />
+            <LockedSidebarItem label="RAG Knowledge" icon="🧠" tooltip="Feature coming soon!" />
+            <LockedSidebarItem label="Agent Workflows" icon="⚡" tooltip="Feature coming soon!" />
+            <LockedSidebarItem label="Internal Deployment" icon="🚀" tooltip="Feature coming soon!" />
+
           </nav>
 
           <div className="flex-1" />
@@ -58,15 +84,22 @@ function App() {
           <MemoryTetrisMini />
         </div>
 
-        <div className="flex-1 overflow-y-auto no-drag">
+        <div className="flex-1 overflow-y-auto no-drag relative">
+          {hoveredTab && (
+            <div className="absolute inset-0 z-50 bg-black/50 backdrop-blur-[1px] flex items-center justify-center pointer-events-none">
+              <div className="bg-black/80 border border-white/10 px-4 py-2 rounded-full text-sm font-medium text-white shadow-2xl transform translate-y-[-100px]">
+                🔒 Enterprise Feature Preview
+              </div>
+            </div>
+          )}
           <div className={
-            activeTab === 'models' ? "h-full" :
-              (activeTab === 'engine' || activeTab === 'studio') ? "max-w-7xl mx-auto h-full p-8" :
+            displayedTab === 'models' ? "h-full" :
+              (displayedTab === 'engine' || displayedTab === 'studio') ? "max-w-7xl mx-auto h-full p-8" :
                 "max-w-4xl mx-auto h-full p-8"
           }>
-            {activeTab === 'studio' && <DataPreparation />}
-            {activeTab === 'models' && <ModelsInterface />}
-            {activeTab === 'engine' && (
+            {displayedTab === 'studio' && <DataPreparation />}
+            {displayedTab === 'models' && <ModelsInterface />}
+            {displayedTab === 'engine' && (
               <div className="space-y-8">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold">Fine-Tuning Engine</h2>
@@ -76,7 +109,7 @@ function App() {
                 <EngineInterface />
               </div>
             )}
-            {activeTab === 'chat' && <ChatInterface />}
+            {displayedTab === 'chat' && <ChatInterface />}
           </div>
         </div>
 
@@ -97,6 +130,28 @@ function SidebarItem({ label, active, onClick, icon }: { label: string, active: 
       <span>{icon}</span>
       <span>{label}</span>
     </button>
+  )
+}
+
+function LockedSidebarItem({ label, icon, onHover, tooltip }: { label: string, icon: string, onHover?: (hovering: boolean) => void, tooltip?: string }) {
+  return (
+    <div
+      className="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium text-gray-600 cursor-not-allowed opacity-50 select-none group relative hover:opacity-80 transition-opacity"
+      onMouseEnter={() => onHover && onHover(true)}
+      onMouseLeave={() => onHover && onHover(false)}
+    >
+      <div className="flex items-center space-x-3">
+        <span className="grayscale">{icon}</span>
+        <span>{label}</span>
+      </div>
+      <span className="text-xs opacity-50">🔒</span>
+
+      {tooltip && (
+        <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 w-max px-3 py-1.5 bg-black/90 border border-white/10 text-xs text-white rounded-md shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap">
+          {tooltip}
+        </div>
+      )}
+    </div>
   )
 }
 
