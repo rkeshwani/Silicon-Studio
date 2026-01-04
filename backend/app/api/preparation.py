@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from app.studio.service import DataStudioService
+from app.preparation.service import DataPreparationService
 
 router = APIRouter()
-service = DataStudioService()
+service = DataPreparationService()
 
 class PreviewRequest(BaseModel):
     file_path: str

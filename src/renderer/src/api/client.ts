@@ -31,9 +31,9 @@ export const apiClient = {
             return res.json();
         }
     },
-    studio: {
+    preparation: {
         previewCsv: async (filePath: string, limit: number = 5): Promise<{ data: PreviewRow[] }> => {
-            const res = await fetch(`${API_BASE}/api/studio/preview`, {
+            const res = await fetch(`${API_BASE}/api/preparation/preview`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ file_path: filePath, limit })
@@ -42,7 +42,7 @@ export const apiClient = {
             return res.json();
         },
         convertCsv: async (file_path: string, output_path: string, instruction_col: string, input_col: string | undefined, output_col: string, strip_pii: boolean, model_family: string): Promise<any> => {
-            const res = await fetch(`${API_BASE}/api/studio/convert`, {
+            const res = await fetch(`${API_BASE}/api/preparation/convert`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

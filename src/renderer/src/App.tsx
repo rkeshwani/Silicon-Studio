@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DataStudio } from './components/DataStudio'
+import { DataPreparation } from './components/DataPreparation'
 import { MemoryTetris } from './components/MemoryTetris'
 import { MemoryTetrisMini } from './components/MemoryTetrisMini'
 import { ChatInterface } from './components/ChatInterface'
@@ -14,7 +14,7 @@ function App() {
     <div className="h-screen w-screen flex flex-col bg-transparent">
       {/* Titlebar / Drag Region */}
       <div className="h-10 w-full drag-region shimmer-bg flex items-center justify-center relative">
-        <span className="text-sm font-medium text-gray-400">Perimeter.ai</span>
+        <span className="text-sm font-medium text-gray-400">Silicon Studio</span>
       </div>
 
       {/* Main Content Area */}
@@ -23,12 +23,12 @@ function App() {
         {/* Sidebar */}
         <div className="w-64 bg-black/20 flex flex-col p-4 border-r border-white/5">
           <div className="mb-6 px-2">
-            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Perimeter</h1>
+            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Silicon Studio</h1>
           </div>
 
           <nav className="space-y-1">
             <SidebarItem
-              label="Data Studio"
+              label="Data Preparation"
               active={activeTab === 'studio'}
               onClick={() => setActiveTab('studio')}
               icon="📊"
@@ -64,7 +64,7 @@ function App() {
               (activeTab === 'engine' || activeTab === 'studio') ? "max-w-7xl mx-auto h-full p-8" :
                 "max-w-4xl mx-auto h-full p-8"
           }>
-            {activeTab === 'studio' && <DataStudio />}
+            {activeTab === 'studio' && <DataPreparation />}
             {activeTab === 'models' && <ModelsInterface />}
             {activeTab === 'engine' && (
               <div className="space-y-8">

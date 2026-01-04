@@ -1,5 +1,6 @@
 {
-    "name": "perimeter-ai",
+    "name": "silicon-studio",
+    "productName": "Silicon Studio",
     "version": "0.1.0",
     "description": "Local-first LLM fine-tuning on Apple Silicon",
     "main": "dist/main/main.js",
@@ -19,7 +20,7 @@
         "electron",
         "react"
     ],
-    "author": "Perimeter.ai",
+    "author": "Silicon Studio",
     "license": "MIT",
     "devDependencies": {
         "concurrently": "^8.2.2",

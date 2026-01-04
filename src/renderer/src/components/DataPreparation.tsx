@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { apiClient, type PreviewRow } from '../api/client'
 
-export function DataStudio() {
+export function DataPreparation() {
     const [filePath, setFilePath] = useState<string>("")
     const [fileName, setFileName] = useState<string>("")
     const [preview, setPreview] = useState<PreviewRow[]>([])
@@ -36,7 +36,7 @@ export function DataStudio() {
                 setLoading(true);
                 setError(null);
 
-                const res = await apiClient.studio.previewCsv(path);
+                const res = await apiClient.preparation.previewCsv(path);
                 setPreview(res.data);
 
                 if (res.data.length > 0) {
@@ -59,7 +59,7 @@ export function DataStudio() {
         if (!filePath || !outputPath || !instructionCol || !outputCol) return
         setLoading(true)
         try {
-            await apiClient.studio.convertCsv(
+            await apiClient.preparation.convertCsv(
                 filePath,
                 outputPath,
                 instructionCol,
@@ -87,7 +87,7 @@ export function DataStudio() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                        Data Studio
+                        Data Preparation
                         <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-300 rounded border border-blue-500/20">BETA</span>
                     </h2>
                     <p className="text-gray-400 text-sm mt-1">Convert any data into fine-tuning data for LLMs</p>
@@ -147,11 +147,11 @@ export function DataStudio() {
                         onChange={(e) => setModelFamily(e.target.value)}
                         className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-blue-500"
                     >
-                        <option value="Llama">Llama 3 (Default)</option>
+                        <option value="Llama">Llama (3, 3.1, 4)</option>
                         <option value="Mistral">Mistral / Mixtral</option>
-                        <option value="Qwen">Qwen 2.5</option>
-                        <option value="Gemma">Gemma 2</option>
-                        <option value="Phi">Phi 3</option>
+                        <option value="Qwen">Qwen (2.5, 2.5-Coder)</option>
+                        <option value="Gemma">Gemma (2, 3)</option>
+                        <option value="Phi">Phi (3, 3.5, 4)</option>
                     </select>
                 </div>
 
@@ -262,7 +262,9 @@ export function DataStudio() {
                 // EMPTY STATE
                 <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-xl bg-white/[0.02]">
                     <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
-                        <span className="text-2xl opacity-50">👈</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                        </svg>
                     </div>
                     <p className="text-gray-500 font-medium">Select a CSV dataset to begin</p>
                     <p className="text-gray-600 text-sm mt-2 max-w-sm text-center">

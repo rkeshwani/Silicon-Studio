@@ -3,7 +3,7 @@ import json
 import os
 from typing import List, Dict, Any
 
-class DataStudioService:
+class DataPreparationService:
     def __init__(self):
         # Lazy import to avoid circular dependencies if any
         from app.shield.service import PIIShieldService
@@ -25,32 +25,32 @@ class DataStudioService:
         """
         Formats the data into a single string based on the model family's chat template.
         """
-        # --- Llama 3 ---
-        if family.lower() in ["llama", "llama 3", "llama 3.1", "llama 3.2"]:
+        # --- Llama 3 / 4 ---
+        if "llama" in family.lower():
             # Format: <|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{content}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n{response}<|eot_id|>
             user_content = f"{instruction}\n\n{input_text}".strip()
             return f"<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{user_content}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n{output_text}<|eot_id|>"
         
         # --- Mistral / Mixtral ---
-        elif family.lower() in ["mistral", "mixtral"]:
+        elif "mistral" in family.lower() or "mixtral" in family.lower():
             # Format: <s>[INST] {instruction} {input} [/INST] {output}</s>
             user_content = f"{instruction} {input_text}".strip()
             return f"<s>[INST] {user_content} [/INST] {output_text}</s>"
             
         # --- Qwen 2.5 ---
-        elif family.lower() in ["qwen", "qwen 2.5"]:
+        elif "qwen" in family.lower():
             # Format: <|im_start|>user\n{content}<|im_end|>\n<|im_start|>assistant\n{response}<|im_end|>\n
             user_content = f"{instruction}\n{input_text}".strip()
             return f"<|im_start|>user\n{user_content}<|im_end|>\n<|im_start|>assistant\n{output_text}<|im_end|>\n"
             
-        # --- Gemma 2 ---
-        elif family.lower() in ["gemma", "gemma 2"]:
+        # --- Gemma 2 / 3 ---
+        elif "gemma" in family.lower():
             # Format: <start_of_turn>user\n{content}<end_of_turn>\n<start_of_turn>model\n{response}<end_of_turn>
             user_content = f"{instruction}\n{input_text}".strip()
             return f"<start_of_turn>user\n{user_content}<end_of_turn>\n<start_of_turn>model\n{output_text}<end_of_turn>"
         
         # --- Phi 3 ---
-        elif family.lower() in ["phi", "phi 3", "phi 3.5"]:
+        elif "phi" in family.lower():
              # Format: <|user|>\n{content}<|end|>\n<|assistant|>\n{response}<|end|>
              user_content = f"{instruction}\n{input_text}".strip()
              return f"<|user|>\n{user_content}<|end|>\n<|assistant|>\n{output_text}<|end|>"

@@ -77,7 +77,16 @@ export function ModelsInterface() {
 
         const matchesSearch = m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             m.id.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesFamily = familyFilter === "All" || m.family === familyFilter;
+
+        let matchesFamily = false;
+        if (familyFilter === "All") {
+            matchesFamily = true;
+        } else if (familyFilter === "Mistral") {
+            // Special handling for Mistral/Mixtral
+            matchesFamily = m.name.toLowerCase().includes("mistral") || m.name.toLowerCase().includes("mixtral");
+        } else {
+            matchesFamily = m.name.toLowerCase().includes(familyFilter.toLowerCase());
+        }
 
         return matchesSearch && matchesFamily;
     })
@@ -222,11 +231,6 @@ export function ModelsInterface() {
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <h3 className="font-semibold text-lg">{model.name}</h3>
-                                                {model.is_custom && (
-                                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/20 uppercase font-bold tracking-wider">
-                                                        User
-                                                    </span>
-                                                )}
 
                                                 {/* Compatibility Warning */}
                                                 {compatibility && !compatibility.compatible && (
@@ -241,14 +245,19 @@ export function ModelsInterface() {
                                                     </div>
                                                 )}
 
+                                                {model.is_custom ? (
+                                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/20 uppercase font-bold tracking-wider">
+                                                        User
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/20 uppercase font-bold tracking-wider">
+                                                        Default
+                                                    </span>
+                                                )}
+
                                                 {model.size !== 'Custom' && (
                                                     <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-400 border border-white/5">
                                                         {model.size}
-                                                    </span>
-                                                )}
-                                                {model.family !== 'Custom' && (
-                                                    <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-400 border border-white/5">
-                                                        {model.family}
                                                     </span>
                                                 )}
 
@@ -322,7 +331,7 @@ export function ModelsInterface() {
                                             </p>
                                         </div>
                                     </div>
-                                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/20 uppercase font-bold tracking-wider">
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/20 uppercase font-bold tracking-wider whitespace-nowrap flex-shrink-0">
                                         Fine-Tuned
                                     </span>
                                 </div>

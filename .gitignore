@@ -24,4 +24,4 @@ adapters/
 
 # Logs
 *.log
-!synthetic_data.csv
+synthetic_data.csv
