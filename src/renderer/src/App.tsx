@@ -41,10 +41,10 @@ function App() {
               icon="💾"
             />
             <SidebarItem
-              label="Engine"
+              label="Fine-Tuning"
               active={activeTab === 'engine'}
               onClick={() => setActiveTab('engine')}
-              icon="⚡️"
+              icon="🤖"
             />
             <SidebarItem
               label="Shield"
@@ -65,9 +65,12 @@ function App() {
           <MemoryTetrisMini />
         </div>
 
-        {/* View Surface */}
-        <div className="flex-1 p-8 overflow-y-auto no-drag">
-          <div className="max-w-4xl mx-auto h-full">
+        <div className="flex-1 overflow-y-auto no-drag">
+          <div className={
+            activeTab === 'models' ? "h-full" :
+              activeTab === 'engine' ? "max-w-7xl mx-auto h-full p-8" :
+                "max-w-4xl mx-auto h-full p-8"
+          }>
             {activeTab === 'studio' && <DataStudio />}
             {activeTab === 'models' && <ModelsInterface />}
             {activeTab === 'engine' && (

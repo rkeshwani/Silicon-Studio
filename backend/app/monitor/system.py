@@ -22,7 +22,7 @@ class SystemMonitor:
                 "total": mem.total,
                 "available": mem.available,
                 "used": mem.used,
-                "percent": mem.percent
+                "percent": round((mem.used / mem.total) * 100)
             },
             "disk": {
                 "total": du.total,

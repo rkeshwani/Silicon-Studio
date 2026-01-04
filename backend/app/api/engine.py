@@ -17,6 +17,7 @@ class FineTuneRequest(BaseModel):
     lora_alpha: float = 16.0
     max_seq_length: int = 512
     lora_dropout: float = 0.0
+    lora_layers: int = 8
     job_name: str = "" # Optional user provided name
 
 @router.post("/finetune")
@@ -25,7 +26,9 @@ async def start_finetune(request: FineTuneRequest):
     Start a fine-tuning job.
     """
     job_id = str(uuid.uuid4())
+    print(f"DEBUG API: Received finetune request. Job Name: '{request.job_name}'")
     config = request.model_dump()
+    print(f"DEBUG API: Config dump: {config}")
     result = await service.start_finetuning(job_id, config)
     return result
 

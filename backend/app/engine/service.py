@@ -9,38 +9,7 @@ from mlx_lm.utils import load_adapters
 
 # Define a curated list of supported models for the UI
 # Default curated list (MLX Community only, as requested)
-DEFAULT_MODELS = [
-    # --- TinyLlama ---
-    {"id": "TinyLlama/TinyLlama-1.1B-Chat-v1.0", "name": "TinyLlama 1.1B (Chat)", "size": "2.2GB", "family": "Llama"},
-    
-    # --- Llama 3.2 ---
-    {"id": "mlx-community/Llama-3.2-1B-Instruct-4bit", "name": "Llama 3.2 1B Instruct (4-bit)", "size": "0.7GB", "family": "Llama"},
-    {"id": "mlx-community/Llama-3.2-3B-Instruct-4bit", "name": "Llama 3.2 3B Instruct (4-bit)", "size": "1.9GB", "family": "Llama"},
-    {"id": "mlx-community/Meta-Llama-3.1-70B-Instruct-4bit", "name": "Llama 3.1 70B Instruct (4-bit)", "size": "40GB", "family": "Llama"},
-
-    # --- Qwen 2.5 ---
-    {"id": "mlx-community/Qwen2.5-0.5B-Instruct-4bit", "name": "Qwen 2.5 0.5B Instruct (4-bit)", "size": "0.4GB", "family": "Qwen"},
-    {"id": "mlx-community/Qwen2.5-1.5B-Instruct-4bit", "name": "Qwen 2.5 1.5B Instruct (4-bit)", "size": "1.0GB", "family": "Qwen"},
-    {"id": "mlx-community/Qwen2.5-3B-Instruct-4bit", "name": "Qwen 2.5 3B Instruct (4-bit)", "size": "1.9GB", "family": "Qwen"},
-    {"id": "mlx-community/Qwen2.5-7B-Instruct-4bit", "name": "Qwen 2.5 7B Instruct (4-bit)", "size": "4.5GB", "family": "Qwen"},
-    {"id": "mlx-community/Qwen2.5-14B-Instruct-4bit", "name": "Qwen 2.5 14B Instruct (4-bit)", "size": "9.0GB", "family": "Qwen"},
-    {"id": "mlx-community/Qwen2.5-32B-Instruct-4bit", "name": "Qwen 2.5 32B Instruct (4-bit)", "size": "19GB", "family": "Qwen"},
-    {"id": "mlx-community/Qwen2.5-72B-Instruct-4bit", "name": "Qwen 2.5 72B Instruct (4-bit)", "size": "41GB", "family": "Qwen"},
-    
-    # --- Gemma 2 ---
-    {"id": "mlx-community/gemma-2-2b-it-4bit", "name": "Gemma 2 2B Instruct (4-bit)", "size": "1.5GB", "family": "Gemma"},
-    {"id": "mlx-community/gemma-2-9b-it-4bit", "name": "Gemma 2 9B Instruct (4-bit)", "size": "5.5GB", "family": "Gemma"},
-    {"id": "mlx-community/gemma-2-27b-it-4bit", "name": "Gemma 2 27B Instruct (4-bit)", "size": "16GB", "family": "Gemma"},
-
-    # --- Mistral / Mixtral ---
-    {"id": "mlx-community/Mistral-7B-Instruct-v0.3-4bit", "name": "Mistral 7B Instruct v0.3 (4-bit)", "size": "4.1GB", "family": "Mistral"},
-    {"id": "mlx-community/Mixtral-8x7B-Instruct-v0.1-4bit", "name": "Mixtral 8x7B Instruct (4-bit)", "size": "24GB", "family": "Mistral"},
-    {"id": "mlx-community/Mixtral-8x22B-Instruct-v0.1-4bit", "name": "Mixtral 8x22B Instruct (4-bit)", "size": "80GB", "family": "Mistral"},
-
-    # --- DeepSeek ---
-    {"id": "mlx-community/DeepSeek-Coder-V2-Lite-Instruct-4bit", "name": "DeepSeek Coder V2 Lite (4-bit)", "size": "8.9GB", "family": "DeepSeek"},
-    {"id": "mlx-community/DeepSeek-V3-4bit", "name": "DeepSeek V3 (4-bit)", "size": "300GB+", "family": "DeepSeek"}, 
-]
+DEFAULT_MODELS = []
 
 class MLXEngineService:
     def __init__(self):
@@ -55,6 +24,7 @@ class MLXEngineService:
         self.models_config = self._load_models_config()
 
     def _load_models_config(self):
+        # Load directly from models.json as the source of truth
         if self.models_config_path.exists():
             try:
                 with open(self.models_config_path, "r") as f:
@@ -62,9 +32,9 @@ class MLXEngineService:
                     return json.load(f)
             except Exception as e:
                 print(f"Error loading models.json: {e}")
-                return DEFAULT_MODELS
+                return []
         else:
-            return DEFAULT_MODELS
+            return []
 
     def _save_models_config(self):
         with open(self.models_config_path, "w") as f:
@@ -159,6 +129,7 @@ class MLXEngineService:
 
     async def start_finetuning(self, job_id: str, config: Dict[str, Any]):
         job_name = config.get("job_name", "")
+        print(f"DEBUG SERVICE: start_finetuning job_name='{job_name}' for job_id={job_id}")
         self.active_jobs[job_id] = {
             "status": "starting", 
             "progress": 0, 
@@ -189,27 +160,46 @@ class MLXEngineService:
             lora_alpha = float(config.get("lora_alpha", 16))
             max_seq_length = int(config.get("max_seq_length", 512))
             lora_dropout = float(config.get("lora_dropout", 0.0))
+            lora_layers = int(config.get("lora_layers", 8))
             
-            adapter_file = self.adapters_dir / f"{job_id}_adapters.safetensors"
+            # Create dedicated directory for this job
+            job_adapter_dir = self.adapters_dir / job_id
+            job_adapter_dir.mkdir(parents=True, exist_ok=True)
+            
+            adapter_file = job_adapter_dir / "adapters.safetensors"
 
             print(f"Starting training job {job_id} for model {model_id}...")
             print(f"Params: Epochs={epochs}, BS={batch_size}, Rank={lora_rank}, Alpha={lora_alpha}, LR={lr}, Dropout={lora_dropout}")
 
             # 1. Load Model (fresh load for training recommended to avoid state issues)
             # For efficiency we could reuse, but freezing/lora modification happens in-place.
-            model, tokenizer, config = load(model_id, return_config=True)
+            # RENAME config -> model_config to avoid shadowing the function argument 'config'
+            model, tokenizer, model_config = load(model_id, return_config=True)
             
             # Freeze the base model
             model.freeze()
 
             # 2. Setup Training Arguments
             from mlx_lm.tuner.datasets import load_local_dataset, CacheDataset
+            import shutil
+
+            # Fix: load_local_dataset expects a directory containing 'train.jsonl'.
+            # It ignores the filename of dataset_path if we just pass the parent directory.
+            # We must create a temporary directory for this job and copy the user's file to 'train.jsonl' there.
             
-            # Use load_local_dataset
-            data_dir = Path(os.path.dirname(dataset_path))
+            job_data_dir = job_adapter_dir / "data"
+            job_data_dir.mkdir(exist_ok=True, parents=True)
+            
+            target_train_path = job_data_dir / "train.jsonl"
+            try:
+                shutil.copy(dataset_path, target_train_path)
+                print(f"Staged dataset {dataset_path} to {target_train_path}")
+            except Exception as e:
+                print(f"Error copying dataset: {e}")
+                # Fallback? No, likely fatal.
             
             # Note: load_local_dataset returns (train, val, test) tuple
-            train_set, val_set, test_set = load_local_dataset(data_dir, tokenizer, config)
+            train_set, val_set, test_set = load_local_dataset(job_data_dir, tokenizer, model_config)
             
             # --- FIX FOR EMPTY VALIDATION SET ---
             # If user provides only train.jsonl, val_set is empty list. Train loop crashes.
@@ -232,8 +222,8 @@ class MLXEngineService:
                     
                     # Re-create datasets
                     from mlx_lm.tuner.datasets import create_dataset
-                    train_set = create_dataset(train_raw, tokenizer, config)
-                    val_set = create_dataset(val_raw, tokenizer, config)
+                    train_set = create_dataset(train_raw, tokenizer, model_config)
+                    val_set = create_dataset(val_raw, tokenizer, model_config)
                 else:
                     # Too small to split, duplicate
                     print("Train set too small (<=1). Duplicating for validation.")
@@ -287,17 +277,20 @@ class MLXEngineService:
             from mlx_lm.tuner.utils import linear_to_lora_layers
 
             # Define LoRA config
+            # Use user-defined layers count
+            
             lora_config = {
                 "rank": lora_rank,
                 "alpha": lora_alpha,
                 "scale": float(lora_alpha / lora_rank), # alpha / rank
                 "dropout": lora_dropout,
-                "keys": ["self_attn.q_proj", "self_attn.v_proj"] # Common keys for LoRA
+                "keys": ["self_attn.q_proj", "self_attn.v_proj"], # Common keys for LoRA
+                "num_layers": lora_layers # User defined
             }
             
-            # Note: num_layers=8 means adapt the last 8 layers
+            # Note: num_layers=N means adapt the last N layers
             # linear_to_lora_layers modifies model in-place and returns None!
-            linear_to_lora_layers(model, 8, lora_config)
+            linear_to_lora_layers(model, lora_config["num_layers"], lora_config)
             
             # Print model to confirm
             print("Model converted to LoRA.")
@@ -315,6 +308,82 @@ class MLXEngineService:
             self.active_jobs[job_id]["model_path"] = str(adapter_file)
             self.active_jobs[job_id]["progress"] = 100
             
+            # --- Auto-Register Fine-Tuned Model ---
+            job_name = config.get("job_name")
+            if not job_name or not job_name.strip():
+                job_name = f"Fine-Tune {job_id[:8]}"
+            
+            # --- SAVE METADATA TO ADAPTER DIR (User Request) ---
+            metadata_path = job_adapter_dir / "metadata.json"
+            metadata = {
+                "job_name": job_name,
+                "job_id": job_id,
+                "base_model": model_id,
+                "params": config
+            }
+            
+            # --- SAVE ADAPTER CONFIG (Required for Inference) ---
+            adapter_config_path = job_adapter_dir / "adapter_config.json"
+            
+            # Enrich lora_config with base model info
+            base_model_type = "llama" # Default
+            if hasattr(model_config, "model_type"):
+                base_model_type = model_config.model_type
+            elif isinstance(model_config, dict) and "model_type" in model_config:
+                base_model_type = model_config["model_type"]
+
+            # MLX-LM expects a specific structure for adapter config
+            # Based on errors: needs 'num_layers' and 'lora_parameters'
+            final_adapter_config = {
+                "num_layers": lora_config["num_layers"],
+                "model_type": base_model_type,
+                "base_model_name_or_path": model_id,
+                "lora_parameters": {
+                    "rank": lora_config["rank"],
+                    "alpha": lora_config["alpha"],
+                    "scale": lora_config["scale"],
+                    "dropout": lora_config["dropout"],
+                    "keys": lora_config["keys"]
+                }
+            }
+
+            try:
+                import json
+                # Save metadata
+                with open(metadata_path, 'w') as f:
+                    json.dump(metadata, f, indent=4)
+                    
+                # Save adapter config
+                with open(adapter_config_path, 'w') as f:
+                    json.dump(final_adapter_config, f, indent=4)
+                    
+            except Exception as e:
+                print(f"Failed to save metadata or adapter config: {e}")
+
+            ft_model_entry = {
+                "id": f"ft-{job_id}", # Unique ID for the fine-tuned model
+                "name": job_name,
+                "base_model": model_id,
+                "adapter_path": str(job_adapter_dir), # Point to directory for MLX load
+                "size": "Adapter", # Or calculate size?
+                "family": "Custom",
+                "is_custom": True,
+                "is_finetuned": True,
+                "params": {
+                    "epochs": epochs,
+                    "batch_size": batch_size,
+                    "lora_rank": lora_rank,
+                    "lora_alpha": lora_alpha,
+                    "learning_rate": lr,
+                    "max_seq_len": max_seq_length,
+                    "dropout": lora_dropout,
+                    "lora_layers": lora_layers
+                }
+            }
+            self.models_config.append(ft_model_entry)
+            self._save_models_config()
+            print(f"Registered fine-tuned model: {ft_model_entry['name']}")
+            
         except Exception as e:
             import traceback
             traceback.print_exc()
@@ -324,6 +393,63 @@ class MLXEngineService:
 
     def get_job_status(self, job_id: str):
         return self.active_jobs.get(job_id, {"status": "not_found"})
+
+    def _get_model_config_by_id(self, model_id: str):
+        for m in self.models_config:
+            if m["id"] == model_id:
+                return m
+        return None
+
+    async def get_model_and_tokenizer(self, model_id: str):
+        if model_id not in self.loaded_models:
+            print(f"Loading model: {model_id}")
+            
+            path_to_load = model_id
+            adapter_path = None
+            
+            # Check if it's a known config first
+            config_entry = self._get_model_config_by_id(model_id)
+            
+            if config_entry:
+                if config_entry.get("is_finetuned"):
+                    # loading fine-tuned model: base + adapter
+                    path_to_load = config_entry["base_model"]
+                    adapter_path = config_entry["adapter_path"]
+                    print(f"Identified fine-tuned model. Base: {path_to_load}, Adapter: {adapter_path}")
+                elif Path(config_entry["id"]).is_absolute():
+                     path_to_load = config_entry["id"]
+                else:
+                    # Standard model, check for local download
+                    sanitized_name = model_id.replace("/", "--")
+                    local_path = self.models_dir / sanitized_name
+                    if (local_path / ".completed").exists():
+                         path_to_load = str(local_path)
+            else:
+                # Fallback logic for raw IDs passed directly
+                if Path(model_id).is_absolute() and Path(model_id).exists():
+                     path_to_load = model_id
+                else:
+                    sanitized_name = model_id.replace("/", "--")
+                    local_path = self.models_dir / sanitized_name
+                    if (local_path / ".completed").exists():
+                        path_to_load = str(local_path)
+            
+            print(f"Loading from: {path_to_load} (Adapter: {adapter_path})")
+
+            # This loads the model weights into memory.
+            loop = asyncio.get_running_loop()
+            
+            if adapter_path:
+                 # Load with adapter
+                 model, tokenizer = await loop.run_in_executor(
+                    None, 
+                    lambda: load(path_to_load, adapter_path=adapter_path)
+                )
+            else:
+                model, tokenizer = await loop.run_in_executor(None, load, path_to_load)
+                
+            self.loaded_models[model_id] = (model, tokenizer)
+        return self.loaded_models[model_id]
 
     def get_models_status(self):
         """
@@ -338,8 +464,10 @@ class MLXEngineService:
             model_path = None
             is_downloading = m["id"] in self.active_downloads
             
-            # 1. Custom Path?
-            if Path(m["id"]).is_absolute():
+            # 1. Custom Path? (Legacy custom registration)
+            if "is_finetuned" in m and m["is_finetuned"]:
+                 is_downloaded = True # Always "downloaded" if it's a local fine-tune
+            elif Path(m["id"]).is_absolute():
                 if Path(m["id"]).exists():
                     is_downloaded = True
                     model_path = str(Path(m["id"]))
@@ -352,12 +480,32 @@ class MLXEngineService:
                     is_downloaded = True
                     model_path = str(local_path)
             
-            models.append({
+            entry = {
                 **m,
                 "downloaded": is_downloaded,
                 "downloading": is_downloading, 
                 "local_path": model_path
-            })
+            }
+            
+            # --- Metadata Recovery Logic ---
+            # If name looks like generic ID and it's a fine-tune, try to read metadata.json
+            if entry["name"].startswith("Fine-Tune ") and "adapter_path" in m:
+                try:
+                    # adapter_path points to .safetensors file. Parent is the dir.
+                    adapter_file = Path(m["adapter_path"])
+                    meta_path = adapter_file.parent / "metadata.json"
+                    if meta_path.exists():
+                        import json
+                        with open(meta_path, 'r') as f:
+                            meta = json.load(f)
+                            if "job_name" in meta and meta["job_name"]:
+                                entry["name"] = meta["job_name"]
+                                # Optional: update config in memory to persist next save
+                                m["name"] = meta["job_name"] 
+                except Exception:
+                    pass
+
+            models.append(entry)
         return models
 
     def download_model(self, model_id: str):
@@ -404,13 +552,35 @@ class MLXEngineService:
     def delete_model(self, model_id: str):
         """
         Deletes a local model from disk.
+        Handles both standard downloaded models and custom registered models.
         """
         try:
+            # Check if it's a custom/finetuned model in config
+            config_entry = self._get_model_config_by_id(model_id)
+            
+            if config_entry and config_entry.get("is_custom"):
+                print(f"Deleting custom model: {model_id} ({config_entry['name']})")
+                
+                # 1. Remove from config
+                self.models_config = [m for m in self.models_config if m["id"] != model_id]
+                self._save_models_config()
+                
+                # 2. Delete files if it's a fine-tune (adapter path)
+                if config_entry.get("is_finetuned") and "adapter_path" in config_entry:
+                    adapter_path = Path(config_entry["adapter_path"])
+                    if adapter_path.exists() and adapter_path.is_dir():
+                        import shutil
+                        print(f"Removing adapter directory: {adapter_path}")
+                        shutil.rmtree(adapter_path)
+                
+                return True
+
+            # Standard Downloaded Model Logic
             sanitized_name = model_id.replace("/", "--")
             local_dir = self.models_dir / sanitized_name
             
             if local_dir.exists():
-                print(f"Deleting model {model_id} at {local_dir}")
+                print(f"Deleting foundation model {model_id} at {local_dir}")
                 import shutil
                 shutil.rmtree(local_dir)
                 return True

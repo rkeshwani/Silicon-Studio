@@ -3,6 +3,7 @@ import { apiClient } from '../api/client';
 
 export function ModelsInterface() {
     const [models, setModels] = useState<any[]>([]);
+    const [activeTab, setActiveTab] = useState<'foundation' | 'custom'>('foundation')
     const [loading, setLoading] = useState(false);
     const [downloading, setDownloading] = useState<Set<string>>(new Set());
     const [error, setError] = useState<string | null>(null);
@@ -12,6 +13,18 @@ export function ModelsInterface() {
     const [customName, setCustomName] = useState("");
     const [customPath, setCustomPath] = useState("");
     const [customUrl, setCustomUrl] = useState("");
+
+    // Filtering State
+    const [searchQuery, setSearchQuery] = useState("");
+    const [familyFilter, setFamilyFilter] = useState("All");
+    const FAMILIES = ["All", "Llama", "Qwen", "Gemma", "Mistral", "DeepSeek"];
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchModels(true)
+        }, 2000)
+        return () => clearInterval(interval)
+    }, [])
 
     useEffect(() => {
         fetchModels();
@@ -29,23 +42,21 @@ export function ModelsInterface() {
         }
     };
 
-    // Poll for updates if any model is downloading
-    useEffect(() => {
-        const hasActiveDownloads = models.some(m => m.downloading) || downloading.size > 0;
+    const foundationModels = models.filter(m => {
+        if (m.is_finetuned || m.is_custom) return false;
 
-        if (hasActiveDownloads) {
-            const interval = setInterval(() => {
-                fetchModels(true);
-            }, 2000);
-            return () => clearInterval(interval);
-        }
-    }, [models, downloading]);
+        const matchesSearch = m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            m.id.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesFamily = familyFilter === "All" || m.family === familyFilter;
+
+        return matchesSearch && matchesFamily;
+    })
+    const customModels = models.filter(m => m.is_finetuned || m.is_custom)
 
     const handleDownload = async (modelId: string) => {
         try {
             setDownloading(prev => new Set(prev).add(modelId));
             await apiClient.engine.downloadModel(modelId);
-            // Trigger immediate update to get server-side status
             fetchModels(true);
         } catch (err: any) {
             alert(`Failed to start download: ${err.message}`);
@@ -64,7 +75,7 @@ export function ModelsInterface() {
         try {
             setLoading(true);
             await apiClient.engine.deleteModel(modelToDelete.id);
-            await fetchModels(); // Refresh list
+            await fetchModels();
             setModelToDelete(null);
         } catch (e: any) {
             setError(e.message);
@@ -91,111 +102,196 @@ export function ModelsInterface() {
     }
 
     return (
-        <div className="h-full flex flex-col p-6 space-y-6 overflow-y-auto relative">
-            <header className="flex justify-between items-center">
+        <div className="h-full flex flex-col pt-8 px-8 pb-0 bg-[#111111] text-white overflow-hidden">
+            <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-semibold tracking-tight text-white mb-2">Model Library</h1>
-                    <p className="text-white/60">Manage your local LLM weights via Hugging Face.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">Models</h1>
+                    <p className="text-gray-400 mt-1">Manage your local LLM library</p>
                 </div>
+                <div className="flex gap-4">
+                    {activeTab === 'foundation' && (
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/5"
+                        >
+                            + Add Foundation Model
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-6 mb-6 border-b border-white/10">
                 <button
-                    onClick={() => setShowAddModal(true)}
-                    className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                    onClick={() => setActiveTab('foundation')}
+                    className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'foundation' ? 'text-blue-400' : 'text-gray-400 hover:text-white'}`}
                 >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add Foundation Model
+                    Foundation Models
+                    {activeTab === 'foundation' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-400"></div>}
                 </button>
-            </header>
+                <button
+                    onClick={() => setActiveTab('custom')}
+                    className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'custom' ? 'text-blue-400' : 'text-gray-400 hover:text-white'}`}
+                >
+                    Custom Models
+                    {activeTab === 'custom' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-400"></div>}
+                </button>
+            </div>
+
+            {/* Filters (Foundation Only) */}
+            {activeTab === 'foundation' && (
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                    <div className="relative flex-1">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search models..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-white outline-none focus:border-blue-500 text-sm placeholder-gray-600 transition-colors hover:bg-white/10"
+                        />
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+                        {FAMILIES.map(family => (
+                            <button
+                                key={family}
+                                onClick={() => setFamilyFilter(family)}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all whitespace-nowrap ${familyFilter === family
+                                    ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
+                                    }`}
+                            >
+                                {family}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg text-sm flex justify-between items-center">
+                <div className="mb-4 bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg text-sm flex justify-between items-center">
                     <span>{error}</span>
                     <button onClick={() => setError(null)} className="text-white/40 hover:text-white">✕</button>
                 </div>
             )}
 
-            {loading && models.length === 0 ? (
-                <div className="text-white/40">Loading models...</div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {models.map((model) => {
-                        // Check both local state (for immediate feedback) and server state (for persistence/refresh)
-                        const isDownloading = downloading.has(model.id) || model.downloading;
-                        const isDownloaded = model.downloaded;
-
-                        return (
-                            <div
-                                key={model.id}
-                                className="bg-[#1E1E1E] border border-white/5 rounded-xl p-5 flex flex-col gap-4 hover:border-white/10 transition-colors relative group"
-                            >
-                                <div className="flex-1 pr-8">
-                                    <div className="flex items-start justify-between mb-2">
-                                        <span className={`text-xs font-medium px-2 py-1 rounded bg-white/10 text-white/80 ${model.is_custom ? 'bg-purple-500/20 text-purple-300' : ''}`}>
-                                            {model.family || (model.is_custom ? 'Custom' : 'LLM')}
-                                        </span>
-                                        <span className="text-xs text-white/40 font-mono">
-                                            {model.size}
-                                        </span>
+            <div className="flex-1 overflow-y-auto pr-2 pb-8">
+                {activeTab === 'foundation' ? (
+                    <div className="grid grid-cols-1 gap-4">
+                        {foundationModels.map((model) => {
+                            const isDownloading = downloading.has(model.id) || model.downloading;
+                            return (
+                                <div key={model.id} className="bg-white/5 border border-white/10 rounded-xl p-6 flex items-center justify-between hover:bg-white/[0.07] transition-colors group">
+                                    <div className="flex items-center gap-4">
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-semibold text-lg">{model.name}</h3>
+                                                <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-400 border border-white/5">
+                                                    {model.size}
+                                                </span>
+                                                <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-400 border border-white/5">
+                                                    {model.family}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-gray-500 font-mono mt-1">{model.id}</p>
+                                        </div>
                                     </div>
-                                    <h3 className="text-lg font-medium text-white mb-1 truncate" title={model.name}>
-                                        {model.name}
-                                    </h3>
-                                    <p className="text-xs text-white/50 truncate font-mono" title={model.id}>
-                                        {model.id}
-                                    </p>
+
+                                    <div className="flex items-center gap-4">
+                                        {isDownloading ? (
+                                            <div className="w-[176px] h-10 flex items-center justify-center gap-2 bg-yellow-500/10 text-yellow-500 rounded-lg border border-yellow-500/20">
+                                                <div className="w-4 h-4 border-2 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin" />
+                                                <span className="text-sm font-medium">Downloading</span>
+                                            </div>
+                                        ) : model.downloaded ? (
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-32 h-10 flex items-center justify-center gap-2 bg-green-500/10 text-green-500 rounded-lg border border-green-500/20 cursor-default">
+                                                    <span className="text-sm font-bold">✓ Ready</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => setModelToDelete(model)}
+                                                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors"
+                                                    title="Delete Model"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleDownload(model.id)}
+                                                className="w-[176px] h-10 bg-white text-black font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+                                            >
+                                                Download
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {customModels.length === 0 && (
+                            <div className="col-span-2 text-center py-20 text-gray-500">
+                                <p className="text-lg mb-2">No custom models found.</p>
+                                <p className="text-sm opacity-60">Fine-tune a model in the Engine tab to see it here.</p>
+                            </div>
+                        )}
+                        {customModels.map((model) => (
+                            <div key={model.id} className="bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/[0.07] transition-colors relative group">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div>
+                                            <h3 className="font-semibold text-lg">{model.name}</h3>
+                                            <p className="text-xs text-gray-500">
+                                                Based on: <span className="text-gray-400">{model.base_model || 'Unknown'}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/20 uppercase font-bold tracking-wider">
+                                        Fine-Tuned
+                                    </span>
                                 </div>
 
-                                <div className="pt-4 border-t border-white/5">
-                                    {isDownloaded ? (
-                                        <div className="flex gap-2">
-                                            <button
-                                                disabled
-                                                className="flex-1 py-2 px-4 rounded-lg bg-green-500/10 text-green-400 text-sm font-medium border border-green-500/20 cursor-default flex items-center justify-center gap-2"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                </svg>
-                                                Installed
-                                            </button>
-                                            <button
-                                                onClick={() => setModelToDelete(model)}
-                                                className="px-3 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors"
-                                                title="Delete Model"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleDownload(model.id)}
-                                            disabled={isDownloading}
-                                            className={`w-full py-2 px-4 rounded-lg text-sm font-medium transition-all ${isDownloading
-                                                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 cursor-wait'
-                                                : 'bg-white text-black hover:bg-gray-100'
-                                                }`}
-                                        >
-                                            {isDownloading ? (
-                                                <span className="flex items-center justify-center gap-2">
-                                                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                    Downloading...
-                                                </span>
-                                            ) : (
-                                                "Download Model"
-                                            )}
-                                        </button>
-                                    )}
+                                {model.params && (
+                                    <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs text-gray-400 mb-4 bg-black/20 p-3 rounded-lg border border-white/5">
+                                        <div className="flex justify-between"><span>Epochs:</span> <span className="text-white font-mono">{model.params.epochs}</span></div>
+                                        <div className="flex justify-between"><span>Batch Size:</span> <span className="text-white font-mono">{model.params.batch_size}</span></div>
+                                        <div className="flex justify-between"><span>Rank:</span> <span className="text-white font-mono">{model.params.lora_rank}</span></div>
+                                        <div className="flex justify-between"><span>Alpha:</span> <span className="text-white font-mono">{model.params.lora_alpha}</span></div>
+                                        <div className="flex justify-between"><span>LR:</span> <span className="text-white font-mono">{model.params.learning_rate}</span></div>
+                                        <div className="flex justify-between"><span>Dropout:</span> <span className="text-white font-mono">{model.params.dropout}</span></div>
+                                        <div className="flex justify-between"><span>Seq Len:</span> <span className="text-white font-mono">{model.params.max_seq_len || 'N/A'}</span></div>
+                                        <div className="flex justify-between"><span>Layers:</span> <span className="text-white font-mono">{model.params.lora_layers || 'N/A'}</span></div>
+                                    </div>
+                                )}
+
+                                <div className="text-[10px] font-mono text-gray-600 truncate mb-4 select-all" title={model.adapter_path || model.id}>
+                                    Adapter: {model.adapter_path ? model.adapter_path.split('/').pop() : 'N/A'}
+                                </div>
+
+                                <div className="absolute bottom-4 right-4">
+                                    <button
+                                        onClick={() => setModelToDelete(model)}
+                                        className="px-3 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors"
+                                        title="Delete Model"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
-            )}
+                        ))}
+                    </div>
+                )}
+            </div>
 
             {/* Confirmation Modal */}
             {modelToDelete && (
@@ -204,7 +300,7 @@ export function ModelsInterface() {
                         <h3 className="text-lg font-bold text-white mb-2">Delete Model?</h3>
                         <p className="text-gray-400 text-sm mb-6">
                             Are you sure you want to delete <span className="text-white font-medium">{modelToDelete.name}</span>?
-                            This will remove the downloaded files ({modelToDelete.size}) from your disk.
+                            This will remove the downloaded files from your disk.
                         </p>
                         <div className="flex justify-end gap-3">
                             <button
@@ -275,8 +371,7 @@ export function ModelsInterface() {
                                     </button>
                                 </div>
                                 <p className="text-[10px] text-white/40 mt-1">
-                                    This absolute path will be used as the <strong>Model ID</strong> by MLX.
-                                    Ensure it contains <code>config.json</code> and <code>*.safetensors</code>.
+                                    This absolute path will be used as the <strong>Model ID</strong>.
                                 </p>
                             </div>
                         </div>

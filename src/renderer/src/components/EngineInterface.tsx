@@ -13,21 +13,43 @@ export function EngineInterface() {
     const [loraAlpha, setLoraAlpha] = useState(16)
     const [maxSeqLength, setMaxSeqLength] = useState(512)
     const [loraDropout, setLoraDropout] = useState(0.0)
+    const [loraLayers, setLoraLayers] = useState(8)
 
     const [jobName, setJobName] = useState('')
+
+    // ... (in startTraining body) ...
+
+    body: JSON.stringify({
+        model_id: selectedModel,
+        dataset_path: datasetPath,
+        epochs,
+        learning_rate: learningRate,
+        batch_size: batchSize,
+        lora_rank: loraRank,
+        lora_alpha: loraAlpha,
+        max_seq_length: maxSeqLength,
+        lora_dropout: loraDropout,
+        lora_layers: loraLayers,
+        job_name: jobName
+    })
 
     const [jobStatus, setJobStatus] = useState<any>(null)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         apiClient.engine.getModels().then((data: any[]) => {
-            const downloaded = data.filter(m => m.downloaded);
+            const downloaded = data.filter(m => m.downloaded && !m.is_finetuned && !m.is_custom);
             setModels(downloaded)
             if (downloaded.length) setSelectedModel(downloaded[0].id)
         }).catch(console.error)
     }, [])
 
     const startTraining = async () => {
+        if (!jobName.trim()) {
+            alert("Please enter a Job Name to identify your fine-tuned model.")
+            return
+        }
+
         setLoading(true)
         try {
             // In a real app, we'd have a job ID returned and poll for it.
@@ -46,6 +68,7 @@ export function EngineInterface() {
                     lora_alpha: loraAlpha,
                     max_seq_length: maxSeqLength,
                     lora_dropout: loraDropout,
+                    lora_layers: loraLayers,
                     job_name: jobName
                 })
             })
@@ -117,7 +140,7 @@ export function EngineInterface() {
                             }}
                             className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors"
                         >
-                            📂 Select Feature
+                            📂
                         </button>
                     </div>
                 </div>
@@ -135,9 +158,15 @@ export function EngineInterface() {
                 <div className="space-y-2">
                     <label className="text-xs uppercase text-gray-500 font-semibold">Learning Rate</label>
                     <input
-                        type="text"
+                        type="number"
+                        step="0.0001"
+                        min="0"
                         value={learningRate}
-                        onChange={e => setLearningRate(parseFloat(e.target.value))}
+                        onChange={e => {
+                            const val = parseFloat(e.target.value);
+                            if (!isNaN(val)) setLearningRate(val);
+                            else if (e.target.value === "") setLearningRate(0); // Handle empty
+                        }}
                         className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500"
                     />
                 </div>
@@ -194,6 +223,19 @@ export function EngineInterface() {
                         onChange={e => setLoraDropout(parseFloat(e.target.value))}
                         className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500"
                     />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-xs uppercase text-gray-500 font-semibold">LoRA Layers (Last N)</label>
+                    <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={loraLayers}
+                        onChange={e => setLoraLayers(parseInt(e.target.value))}
+                        className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500"
+                    />
+                    <p className="text-[10px] text-gray-500">Number of layers to fine-tune (from end).</p>
                 </div>
             </div>
 
