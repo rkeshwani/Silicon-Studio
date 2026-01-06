@@ -20,7 +20,25 @@ class MLXEngineService:
         self.models_dir.mkdir(exist_ok=True)
         self.adapters_dir = Path("adapters")
         self.adapters_dir.mkdir(exist_ok=True)
-        self.models_config_path = Path("models.json")
+        
+        # PROD FIX: Check multiple locations for models.json
+        possible_paths = [
+            Path("models.json"), # Default CWD
+            Path("_internal/models.json"), # PyInstaller one-dir default
+        ]
+        
+        # Check sys._MEIPASS if frozen
+        import sys
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+             possible_paths.append(Path(sys._MEIPASS) / "models.json")
+             
+        self.models_config_path = Path("models.json") # Default fallback
+        for p in possible_paths:
+            if p.exists():
+                self.models_config_path = p
+                print(f"Found models.config at: {p.absolute()}")
+                break
+                
         self.models_config = self._load_models_config()
 
     def _load_models_config(self):

@@ -25,3 +25,6 @@ adapters/
 # Logs
 *.log
 synthetic_data.csv
+
+# app
+release/

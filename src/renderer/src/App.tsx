@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DataPreparation } from './components/DataPreparation'
 import { MemoryTetris } from './components/MemoryTetris'
 import { MemoryTetrisMini } from './components/MemoryTetrisMini'
@@ -10,8 +10,57 @@ import { ModelsInterface } from './components/ModelsInterface'
 function App() {
   const [activeTab, setActiveTab] = useState('models')
   const [hoveredTab, setHoveredTab] = useState<string | null>(null)
+  const [backendReady, setBackendReady] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState('Initializing backend...')
 
   const displayedTab = hoveredTab || activeTab
+
+  // Poll backend health until ready
+  useEffect(() => {
+    let cancelled = false;
+    let attempts = 0;
+
+    const checkBackend = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/health');
+        if (response.ok && !cancelled) {
+          setBackendReady(true);
+        }
+      } catch {
+        // Backend not ready yet
+        attempts++;
+        if (attempts > 5) {
+          setLoadingMessage('Starting MLX engine...');
+        }
+        if (!cancelled) {
+          setTimeout(checkBackend, 500);
+        }
+      }
+    };
+
+    checkBackend();
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // Show loading screen while backend starts
+  if (!backendReady) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[rgba(15,15,15,0.95)]">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+          </div>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent mb-2">
+              Silicon Studio
+            </h1>
+            <p className="text-sm text-gray-400">{loadingMessage}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-screen flex flex-col bg-transparent">

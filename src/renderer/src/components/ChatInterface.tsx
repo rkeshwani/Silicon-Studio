@@ -11,13 +11,28 @@ interface Model {
     name: string
 }
 
+const CHAT_STORAGE_KEY = 'silicon-studio-chat-history';
+
 export function ChatInterface() {
-    const [messages, setMessages] = useState<Message[]>([])
+    const [messages, setMessages] = useState<Message[]>(() => {
+        // Load from localStorage on initial mount
+        try {
+            const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+            return saved ? JSON.parse(saved) : [];
+        } catch {
+            return [];
+        }
+    })
     const [input, setInput] = useState('')
     const [models, setModels] = useState<Model[]>([])
     const [selectedModel, setSelectedModel] = useState<string>('')
     const [loading, setLoading] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
+
+    // Save messages to localStorage whenever they change
+    useEffect(() => {
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+    }, [messages]);
 
     useEffect(() => {
         // Fetch available models
@@ -31,6 +46,11 @@ export function ChatInterface() {
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages])
+
+    const handleClearChat = () => {
+        setMessages([]);
+        localStorage.removeItem(CHAT_STORAGE_KEY);
+    };
 
     const handleSend = async () => {
         if (!input.trim() || !selectedModel) return
@@ -63,15 +83,26 @@ export function ChatInterface() {
         <div className="h-full flex flex-col space-y-4">
             <div className="flex justify-between items-center bg-black/20 p-3 rounded-lg border border-white/5">
                 <h2 className="text-xl font-bold text-white">Chat</h2>
-                <select
-                    value={selectedModel}
-                    onChange={(e) => setSelectedModel(e.target.value)}
-                    className="bg-black/40 text-gray-300 text-sm rounded px-2 py-1 border border-white/10 outline-none focus:border-blue-500"
-                >
-                    {models.map(m => (
-                        <option key={m.id} value={m.id}>{m.name}</option>
-                    ))}
-                </select>
+                <div className="flex items-center gap-3">
+                    {messages.length > 0 && (
+                        <button
+                            onClick={handleClearChat}
+                            className="text-xs text-gray-400 hover:text-red-400 transition-colors px-2 py-1 rounded hover:bg-white/5"
+                            title="Clear chat history"
+                        >
+                            Clear
+                        </button>
+                    )}
+                    <select
+                        value={selectedModel}
+                        onChange={(e) => setSelectedModel(e.target.value)}
+                        className="bg-black/40 text-gray-300 text-sm rounded px-2 py-1 border border-white/10 outline-none focus:border-blue-500"
+                    >
+                        {models.map(m => (
+                            <option key={m.id} value={m.id}>{m.name}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div className="flex-1 bg-black/10 rounded-xl border border-white/5 p-4 overflow-y-auto space-y-4">

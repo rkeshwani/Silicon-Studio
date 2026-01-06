@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
 
 export function ModelsInterface() {
@@ -96,7 +96,23 @@ export function ModelsInterface() {
         try {
             setDownloading(prev => new Set(prev).add(modelId));
             await apiClient.engine.downloadModel(modelId);
-            fetchModels(true);
+
+            // Poll until the model shows as downloaded
+            const pollForCompletion = async () => {
+                const data = await apiClient.engine.getModels();
+                const model = data.find((m: any) => m.id === modelId);
+                if (model?.downloaded) {
+                    setModels(data);
+                    setDownloading(prev => {
+                        const next = new Set(prev);
+                        next.delete(modelId);
+                        return next;
+                    });
+                } else {
+                    setTimeout(pollForCompletion, 1000);
+                }
+            };
+            pollForCompletion();
         } catch (err: any) {
             alert(`Failed to start download: ${err.message}`);
             setDownloading(prev => {
