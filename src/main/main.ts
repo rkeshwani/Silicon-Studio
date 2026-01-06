@@ -46,33 +46,22 @@ function startBackend() {
         }
     }
 
-    const logPath = path.join(app.getPath('desktop'), 'silicon_debug.log');
-
-    // Clear log on start
-    fs.writeFileSync(logPath, `Starting Silicon Studio Backend at ${new Date().toISOString()}\n`);
-    fs.appendFileSync(logPath, `Binary Path: ${command}\n`);
-    fs.appendFileSync(logPath, `Args: ${JSON.stringify(args)}\n`);
-
+    // Log to console only (debug file logging disabled for production)
     if (backendProcess && backendProcess.stdout) {
         backendProcess.stdout.on('data', (data) => {
-            const str = data.toString();
-            console.log(`[Backend]: ${str}`);
-            fs.appendFileSync(logPath, `[STDOUT] ${str}`);
+            console.log(`[Backend]: ${data.toString()}`);
         });
     }
 
     if (backendProcess && backendProcess.stderr) {
         backendProcess.stderr.on('data', (data) => {
-            const str = data.toString();
-            console.error(`[Backend Error]: ${str}`);
-            fs.appendFileSync(logPath, `[STDERR] ${str}`);
+            console.error(`[Backend Error]: ${data.toString()}`);
         });
     }
 
     if (backendProcess) {
         backendProcess.on('close', (code) => {
             console.log(`Backend process exited with code ${code}`);
-            fs.appendFileSync(logPath, `Backend exited with code ${code}\n`);
             backendProcess = null;
         });
     }
