@@ -64,7 +64,7 @@ Prerequisites:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/silicon-studio.git
+git clone [https://github.com/yourusername/silicon-studio.git](https://github.com/rileycleavenger/Silicon-Studio.git)
 cd silicon-studio
 
 # Install dependencies
