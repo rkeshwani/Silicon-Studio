@@ -15,7 +15,7 @@ function startBackend() {
         // In development, run the python script directly
         // Assuming we are running from the project root
         command = 'python3';
-        scriptPath = path.join(__dirname, '../../../backend/main.py');
+        scriptPath = path.join(__dirname, '../../backend/main.py');
         args = [scriptPath];
         console.log('Starting backend in DEV mode:', command, args);
     } else {
@@ -30,8 +30,8 @@ function startBackend() {
 
     try {
         backendProcess = spawn(command, args, {
-            cwd: isDev ? path.join(__dirname, '../../../backend') : path.join(process.resourcesPath, 'backend', 'dist', 'silicon_server'),
-            stdio: ['ignore', 'pipe', 'pipe'] // Clean output
+            cwd: isDev ? path.join(__dirname, '../../backend') : path.join(process.resourcesPath, 'backend', 'dist', 'silicon_server'),
+            stdio: ['ignore', 'pipe', 'pipe']
         });
 
         backendProcess.on('error', (err) => {
@@ -96,7 +96,7 @@ function createWindow() {
     const isDev = !app.isPackaged;
     if (isDev) {
         mainWindow.loadURL('http://localhost:5173');
-        mainWindow.webContents.openDevTools({ mode: 'detach' });
+        // mainWindow.webContents.openDevTools({ mode: 'detach' });
     } else {
         // In production, the file structure is:
         // dist/main/main.js (Current file)

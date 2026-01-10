@@ -5,9 +5,15 @@ from typing import List, Dict, Any
 
 class DataPreparationService:
     def __init__(self):
-        # Lazy import to avoid circular dependencies if any
-        from app.shield.service import PIIShieldService
-        self.shield = PIIShieldService()
+        self._shield = None
+
+    @property
+    def shield(self):
+        if self._shield is None:
+            # Lazy import and init
+            from app.shield.service import PIIShieldService
+            self._shield = PIIShieldService()
+        return self._shield
 
     def preview_csv(self, file_path: str, limit: int = 5) -> List[Dict[str, Any]]:
         """

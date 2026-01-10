@@ -250,5 +250,25 @@
         "size": "351.7GB",
         "family": "DeepSeek",
         "url": "https://huggingface.co/mlx-community/DeepSeek-V3-4bit"
+    },
+    {
+        "id": "ft-07335ddd-d91f-4f6e-96fc-2b835be5df9d",
+        "name": "Test",
+        "base_model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        "adapter_path": "adapters/07335ddd-d91f-4f6e-96fc-2b835be5df9d",
+        "size": "Adapter",
+        "family": "Custom",
+        "is_custom": true,
+        "is_finetuned": true,
+        "params": {
+            "epochs": 3,
+            "batch_size": 1,
+            "lora_rank": 8,
+            "lora_alpha": 16.0,
+            "learning_rate": 0.0001,
+            "max_seq_len": 512,
+            "dropout": 0.0,
+            "lora_layers": 8
+        }
     }
 ]

@@ -14,6 +14,7 @@ try:
     print("DEBUG: Imported preparation router", flush=True)
     from app.api.engine import router as engine_router
     print("DEBUG: Imported engine router", flush=True)
+
 except Exception as e:
     print(f"CRITICAL: Import error: {e}", flush=True)
     import traceback
@@ -38,6 +39,7 @@ app.add_middleware(
 app.include_router(monitor_router, prefix="/api/monitor", tags=["monitor"])
 app.include_router(preparation_router, prefix="/api/preparation", tags=["preparation"])
 app.include_router(engine_router, prefix="/api/engine", tags=["engine"])
+
 
 @app.get("/health")
 async def health_check():

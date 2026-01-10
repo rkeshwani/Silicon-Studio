@@ -11,16 +11,45 @@ class PIIShieldService:
             # PROD FIX: Explicitly load the bundled spacy model
             # This works better with PyInstaller than relying on string names
             nlp = None
+            nlp = None
             try:
+                # 1. Try importing as module (standard)
                 import en_core_web_sm
                 print("DEBUG: Found en_core_web_sm module, loading...", flush=True)
                 nlp = en_core_web_sm.load()
-            except ImportError:
-                 print("DEBUG: en_core_web_sm module not found, trying spacy.load('en_core_web_sm')", flush=True)
+            except Exception as e1:
+                print(f"DEBUG: module load failed: {e1}", flush=True)
+                # 2. Try loading from sys._MEIPASS (PyInstaller)
+                import sys
+                import os
+                if getattr(sys, 'frozen', False):
+                    try:
+                        base_path = sys._MEIPASS
+                        # Check likely locations
+                        paths = [
+                            os.path.join(base_path, "en_core_web_sm"),
+                            os.path.join(base_path, "en_core_web_sm", "en_core_web_sm-" + "3.7.1"), # approximate version?
+                        ]
+                        # Also check if it was collected into the root
+                        model_path = os.path.join(base_path, "en_core_web_sm")
+                        if os.path.exists(model_path):
+                             print(f"DEBUG: Loading from frozen path: {model_path}", flush=True)
+                             nlp = spacy.load(model_path)
+                        else:
+                             # Try typical site-packages structure if collected entirely
+                             # But collect_all usually puts it in root.
+                             # Let's try spacy.load("en_core_web_sm") again but maybe it needs context?
+                             print(f"DEBUG: Model path not found at {model_path}, trying spacy.load('en_core_web_sm')", flush=True)
+                             nlp = spacy.load("en_core_web_sm")
+                    except Exception as e2:
+                         print(f"DEBUG: Frozen load failed: {e2}", flush=True)
+
+            if nlp is None:
+                 # 3. Last ditch: try loading generic 'en' using spacy
                  try:
                     nlp = spacy.load("en_core_web_sm")
-                 except Exception as e:
-                    print(f"DEBUG: Failed to load en_core_web_sm: {e}. Trying 'en'...", flush=True)
+                 except Exception as e3:
+                    print(f"DEBUG: All load attempts failed. Last error: {e3}", flush=True)
             
             if nlp:
                  print("DEBUG: Spacy NLP model loaded successfully.", flush=True)
