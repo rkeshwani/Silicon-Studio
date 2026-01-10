@@ -52,7 +52,7 @@ Test your fine-tuned models immediately in a ChatGPT-like interface.
 ### Installation
 
 **Option 1: Download Release (Recommended)**
-Download the latest `.dmg` from the [Releases](https://github.com/yourusername/silicon-studio/releases) page.
+Download the latest `.dmg` from the [Releases]([https://github.com/yourusername/silicon-studio/releases](https://github.com/rileycleavenger/Silicon-Studio/releases/tag/0.1.0)) page.
 
 **Option 2: Build from Source**
 
