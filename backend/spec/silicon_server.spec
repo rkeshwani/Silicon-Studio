@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+import sys
 from PyInstaller.utils.hooks import collect_all
 
 datas = [
@@ -29,15 +30,39 @@ hiddenimports = [
 ]
 
 # MLX and MLX-LM often need explicit collection
-tmp_ret = collect_all('mlx')
-datas += tmp_ret[0]
-binaries += tmp_ret[1]
-hiddenimports += tmp_ret[2]
+if sys.platform == 'darwin':
+    try:
+        tmp_ret = collect_all('mlx')
+        datas += tmp_ret[0]
+        binaries += tmp_ret[1]
+        hiddenimports += tmp_ret[2]
+    except Exception as e:
+        print(f"Warning: Could not collect mlx: {e}")
 
-tmp_ret = collect_all('mlx_lm')
-datas += tmp_ret[0]
-binaries += tmp_ret[1]
-hiddenimports += tmp_ret[2]
+    try:
+        tmp_ret = collect_all('mlx_lm')
+        datas += tmp_ret[0]
+        binaries += tmp_ret[1]
+        hiddenimports += tmp_ret[2]
+    except Exception as e:
+        print(f"Warning: Could not collect mlx_lm: {e}")
+elif sys.platform == 'win32':
+    # Windows: Collect Unsloth and bitsandbytes if available
+    try:
+        tmp_ret = collect_all('unsloth')
+        datas += tmp_ret[0]
+        binaries += tmp_ret[1]
+        hiddenimports += tmp_ret[2]
+    except Exception as e:
+        print(f"Warning: Could not collect unsloth: {e}")
+
+    try:
+        tmp_ret = collect_all('bitsandbytes')
+        datas += tmp_ret[0]
+        binaries += tmp_ret[1]
+        hiddenimports += tmp_ret[2]
+    except Exception as e:
+        print(f"Warning: Could not collect bitsandbytes: {e}")
 
 tmp_ret = collect_all('uvicorn')
 datas += tmp_ret[0]
@@ -78,6 +103,31 @@ hiddenimports += tmp_ret[2]
 
 block_cipher = None
 
+# Excludes list
+excludes_list = [
+    'PyQt5',
+    'PyQt6',
+    'tkinter',
+    'IPython',
+    'matplotlib',
+    'wx',
+    'test',
+    'pytest',
+    'skimage',
+    'altair',
+    'bokeh',
+    'panel',
+    'plotly',
+    'notebook',
+    'jupyter',
+    'nbconvert',
+    'nbformat',
+]
+
+# Only exclude torch on macOS (where we use MLX)
+if sys.platform == 'darwin':
+    excludes_list.extend(['torchvision', 'torch'])
+
 a = Analysis(
     ['../main.py'],
     pathex=[],
@@ -87,27 +137,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[
-        'PyQt5', 
-        'PyQt6', 
-        'tkinter', 
-        'IPython', 
-        'matplotlib', 
-        'wx',
-        'test',
-        'pytest',
-        'skimage',
-        'altair',
-        'bokeh',
-        'panel',
-        'plotly',
-        'notebook',
-        'jupyter',
-        'nbconvert',
-        'nbformat',
-        'torchvision',
-        'torch'
-    ],
+    excludes=excludes_list,
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,

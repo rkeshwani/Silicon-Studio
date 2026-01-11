@@ -15,7 +15,9 @@
         "build:main": "tsc -p src/main/tsconfig.json",
         "start": "electron .",
         "package": "npm run build && npm run build:backend && electron-builder build --mac",
-        "build:backend": "cd backend && /opt/anaconda3/bin/python3 -m PyInstaller spec/silicon_server.spec --clean --noconfirm"
+        "package:win": "npm run build && npm run build:backend:win && electron-builder build --win",
+        "build:backend": "cd backend && /opt/anaconda3/bin/python3 -m PyInstaller spec/silicon_server.spec --clean --noconfirm",
+        "build:backend:win": "cd backend && python -m PyInstaller spec/silicon_server.spec --clean --noconfirm"
     },
     "build": {
         "appId": "com.siliconstudio.app",
@@ -30,6 +32,10 @@
         "extraResources": [
             "backend/dist/silicon_server"
         ],
+        "win": {
+            "target": "nsis",
+            "icon": "resources/icon.png"
+        },
         "mac": {
             "icon": "resources/icon.icns",
             "target": [
