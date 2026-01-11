@@ -3,13 +3,17 @@ import os
 import threading
 from typing import Dict, Any, List
 from pathlib import Path
-from mlx_lm import load, generate
-from mlx_lm.tuner import train, TrainingArgs
-from mlx_lm.utils import load_adapters
-
 from app.engine.base import BaseEngineService
 
+try:
+    from mlx_lm import load, generate
+    from mlx_lm.tuner import train, TrainingArgs
+    from mlx_lm.utils import load_adapters
+except ImportError:
+    load = generate = train = TrainingArgs = load_adapters = None
+
 class MLXEngineService(BaseEngineService):
+
     def __init__(self):
         self.active_jobs = {}
         self.active_downloads = set() # Track active downloads logic
@@ -211,6 +215,9 @@ class MLXEngineService(BaseEngineService):
         Executed in a separate thread.
         """
         try:
+            if load is None:
+                raise RuntimeError("MLX library not available. This engine requires Apple Silicon and 'mlx-lm'.")
+
             self.active_jobs[job_id]["status"] = "training"
             model_id = config.get("model_id")
             dataset_path = config.get("dataset_path")

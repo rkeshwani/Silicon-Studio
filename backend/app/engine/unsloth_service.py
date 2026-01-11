@@ -196,6 +196,9 @@ class UnslothEngineService(BaseEngineService):
 
     def _run_training_job(self, job_id: str, config: Dict):
         try:
+            if FastLanguageModel is None:
+                raise RuntimeError("Unsloth library not available. Please install 'unsloth' and compatible CUDA drivers.")
+
             self.active_jobs[job_id]["status"] = "training"
             model_id = config.get("model_id")
             dataset_path = config.get("dataset_path")

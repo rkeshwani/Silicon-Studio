@@ -4,6 +4,7 @@ import { MemoryTetris } from './components/MemoryTetris'
 import { MemoryTetrisMini } from './components/MemoryTetrisMini'
 import { ChatInterface } from './components/ChatInterface'
 import { EngineInterface } from './components/EngineInterface'
+import { EngineSelectionModal } from './components/EngineSelectionModal'
 
 
 import { ModelsInterface } from './components/ModelsInterface'
@@ -13,6 +14,10 @@ function App() {
 
   const [backendReady, setBackendReady] = useState(false)
   const [loadingMessage, setLoadingMessage] = useState('Initializing backend...')
+
+  const [showEngineModal, setShowEngineModal] = useState(false)
+  const [hardwareCaps, setHardwareCaps] = useState({ mlx: false, cuda: false })
+  const [activeEngine, setActiveEngine] = useState<string | null>(null)
 
 
 
@@ -27,14 +32,15 @@ function App() {
       try {
         const response = await fetch('http://127.0.0.1:8000/health');
         if (response.ok && !cancelled) {
-          setBackendReady(true);
+          // Check engine status
+          checkEngineStatus();
           setBackendReady(true);
         }
       } catch {
         // Backend not ready yet
         attempts++;
         if (attempts > 5) {
-          setLoadingMessage('Starting MLX engine...');
+          setLoadingMessage('Starting AI engine...');
         }
         if (!cancelled) {
           setTimeout(checkBackend, 500);
@@ -46,6 +52,48 @@ function App() {
 
     return () => { cancelled = true; };
   }, []);
+
+  const checkEngineStatus = async () => {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/engine/status');
+      const data = await res.json();
+      setHardwareCaps(data.hardware);
+
+      if (!data.config_engine) {
+        setShowEngineModal(true);
+      } else {
+        setActiveEngine(data.engine);
+        // Safety check
+        if (data.engine === 'unsloth' && !data.hardware.cuda) {
+            // Config mismatch - re-prompt
+            setShowEngineModal(true);
+        } else if (data.engine === 'mlx' && !data.hardware.mlx) {
+             setShowEngineModal(true);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to check engine status", e);
+    }
+  };
+
+  const handleEngineSelect = async (engine: string) => {
+    try {
+        const res = await fetch('http://127.0.0.1:8000/api/engine/select', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ engine })
+        });
+        if (res.ok) {
+            setShowEngineModal(false);
+            setActiveEngine(engine);
+            // Reload window or re-check status?
+            // Re-check status to confirm
+            await checkEngineStatus();
+        }
+    } catch (e) {
+        console.error("Failed to select engine", e);
+    }
+  };
 
 
 
@@ -69,8 +117,11 @@ function App() {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-transparent">
+    <div className="h-screen w-screen flex flex-col bg-transparent relative">
 
+      {showEngineModal && (
+        <EngineSelectionModal onSelect={handleEngineSelect} hardware={hardwareCaps} />
+      )}
 
       {/* Titlebar / Drag Region */}
       <div className="h-10 w-full drag-region shimmer-bg flex items-center justify-center relative">
@@ -121,6 +172,16 @@ function App() {
             <LockedSidebarItem label="Deployment" icon="🚀" isLocked={true} onClick={() => { }} tooltip="Feature coming soon!" />
 
           </nav>
+
+          <div className="mt-4 px-2">
+            <button
+                onClick={() => setShowEngineModal(true)}
+                className="w-full text-xs text-gray-500 hover:text-white border border-white/5 hover:border-white/10 rounded px-2 py-1 transition-colors flex items-center justify-center gap-2"
+            >
+                <span>⚙️</span>
+                <span>Engine: {activeEngine === 'mlx' ? 'Apple MLX' : activeEngine === 'unsloth' ? 'Unsloth CUDA' : 'Select'}</span>
+            </button>
+          </div>
 
           <div className="flex-1" />
 

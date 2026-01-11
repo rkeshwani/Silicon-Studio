@@ -133,12 +133,11 @@ async def get_engine_status():
     active_engine = "none"
     service = get_engine()
     if service:
-        # Determine type
-        from app.engine.mlx_service import MLXEngineService
-        from app.engine.unsloth_service import UnslothEngineService
-        if isinstance(service, MLXEngineService):
+        # Determine type by class name to avoid unsafe imports of backend libraries
+        service_type = type(service).__name__
+        if service_type == "MLXEngineService":
             active_engine = "mlx"
-        elif isinstance(service, UnslothEngineService):
+        elif service_type == "UnslothEngineService":
             active_engine = "unsloth"
 
     return {
