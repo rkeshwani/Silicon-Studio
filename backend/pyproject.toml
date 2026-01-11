@@ -26,7 +26,8 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
     "black>=24.0.0",
-    "isort>=5.13.0"
+    "isort>=5.13.0",
+    "pyinstaller>=6.4.0"
 ]
 
 [tool.setuptools]
