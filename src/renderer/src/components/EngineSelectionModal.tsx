@@ -5,6 +5,7 @@ interface EngineSelectionModalProps {
   hardware: {
     mlx: boolean
     cuda: boolean
+    cuda_installable?: boolean
   }
 }
 
@@ -49,9 +50,9 @@ export function EngineSelectionModal({ onSelect, hardware }: EngineSelectionModa
           {/* Unsloth Option */}
           <button
             onClick={() => onSelect('unsloth')}
-            disabled={!hardware.cuda}
+            disabled={!hardware.cuda && !hardware.cuda_installable}
             className={`relative group p-6 rounded-xl border transition-all duration-300 text-left ${
-              hardware.cuda
+              hardware.cuda || hardware.cuda_installable
                 ? 'border-white/10 hover:border-purple-500/50 hover:bg-white/5 cursor-pointer'
                 : 'border-white/5 bg-white/5 opacity-50 cursor-not-allowed'
             }`}
@@ -63,15 +64,22 @@ export function EngineSelectionModal({ onSelect, hardware }: EngineSelectionModa
                   Detected
                 </span>
               )}
+              {!hardware.cuda && hardware.cuda_installable && (
+                <span className="text-xs px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-full border border-yellow-500/20">
+                  Install Available
+                </span>
+              )}
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">Unsloth (CUDA)</h3>
             <p className="text-sm text-gray-400">
-              Optimized for NVIDIA GPUs. Up to 2x faster fine-tuning and 70% less memory usage.
+              {hardware.cuda_installable && !hardware.cuda 
+                ? "Click to automatically install CUDA dependencies and restart the backend." 
+                : "Optimized for NVIDIA GPUs. Up to 2x faster fine-tuning and 70% less memory usage."}
             </p>
           </button>
         </div>
 
-        {!hardware.mlx && !hardware.cuda && (
+        {!hardware.mlx && !hardware.cuda && !hardware.cuda_installable && (
           <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center">
             No compatible hardware detected. Please ensure you have an Apple Silicon Mac or an NVIDIA GPU with drivers installed.
           </div>

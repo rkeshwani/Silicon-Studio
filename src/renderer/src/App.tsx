@@ -201,9 +201,15 @@ function App() {
               <div className="space-y-8">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold">Fine-Tuning Engine</h2>
-                  <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded border border-green-500/20">MLX Accelerated</span>
+                  <span className={`text-xs px-2 py-1 rounded border ${
+                    activeEngine === 'unsloth'
+                      ? 'bg-purple-500/20 text-purple-400 border-purple-500/20'
+                      : 'bg-green-500/20 text-green-400 border-green-500/20'
+                  }`}>
+                    {activeEngine === 'unsloth' ? 'CUDA Enabled' : 'MLX Accelerated'}
+                  </span>
                 </div>
-                <MemoryTetris />
+                <MemoryTetris isCuda={activeEngine === 'unsloth'} />
                 <EngineInterface />
               </div>
             )}
