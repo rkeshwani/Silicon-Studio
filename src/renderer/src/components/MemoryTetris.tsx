@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
 import { apiClient, type SystemStats } from '../api/client'
 
-export function MemoryTetris() {
-    const [stats, setStats] = useState<SystemStats | null>(null)
+interface MemoryTetrisProps {
+    isCuda?: boolean
+}
+
+export function MemoryTetris({ isCuda }: MemoryTetrisProps) {
+    const [stats, setStats] = useState<any | null>(null)
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
@@ -45,12 +49,11 @@ export function MemoryTetris() {
     return (
         <div className="flex flex-col space-y-6">
 
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={`grid grid-cols-1 ${isCuda ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6`}>
                 {/* RAM Block */}
                 <div className="bg-black/20 p-6 rounded-xl border border-white/10">
                     <div className="flex justify-between items-end mb-2">
-                        <span className="text-sm font-bold text-gray-400 uppercase">Unified Memory</span>
+                        <span className="text-sm font-bold text-gray-400 uppercase">{isCuda ? 'System RAM' : 'Unified Memory'}</span>
                         <span className="text-2xl font-mono text-white">{stats.memory.percent}%</span>
                     </div>
                     <div className="h-32 bg-gray-800 rounded-lg overflow-hidden flex flex-col-reverse relative">
@@ -72,6 +75,31 @@ export function MemoryTetris() {
                     </div>
                 </div>
 
+                {/* VRAM Block (CUDA Only) */}
+                {isCuda && (
+                    <div className="bg-black/20 p-6 rounded-xl border border-white/10">
+                        <div className="flex justify-between items-end mb-2">
+                            <span className="text-sm font-bold text-gray-400 uppercase">GPU VRAM</span>
+                            <span className="text-2xl font-mono text-white">{stats.vram?.percent || 0}%</span>
+                        </div>
+                        <div className="h-32 bg-gray-800 rounded-lg overflow-hidden flex flex-col-reverse relative">
+                            <div
+                                className="w-full bg-gradient-to-t from-green-600 to-emerald-400 transition-all duration-500 ease-in-out"
+                                style={{ height: `${stats.vram?.percent || 0}%` }}
+                            />
+                            <div className="absolute inset-0 grid grid-cols-8 grid-rows-4 gap-0.5 opacity-20 pointer-events-none">
+                                {Array.from({ length: 32 }).map((_, i) => (
+                                    <div key={i} className="border border-black"></div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500 mt-2 font-mono">
+                            <span>Used: {formatBytes(stats.vram?.used || 0)}</span>
+                            <span>Total: {formatBytes(stats.vram?.total || 0)}</span>
+                        </div>
+                    </div>
+                )}
+
                 {/* CPU Block */}
                 <div className="bg-black/20 p-6 rounded-xl border border-white/10">
                     <div className="flex justify-between items-end mb-2">
@@ -89,7 +117,7 @@ export function MemoryTetris() {
                     </div>
                     <div className="flex justify-between text-xs text-gray-500 mt-2 font-mono">
                         <span>Cores: {stats.cpu.cores}</span>
-                        <span>System: macOS (Apple Silicon)</span>
+                        <span>System: {isCuda ? 'CUDA Accelerated' : 'macOS (Apple Silicon)'}</span>
                     </div>
                 </div>
             </div>

@@ -15,12 +15,14 @@ except ImportError:
     pass
 
 # Unsloth specific imports
+UNSLOTH_IMPORT_ERROR = None
 try:
     from unsloth import FastLanguageModel
     from trl import SFTTrainer
     from transformers import TrainingArguments
     from datasets import load_dataset
 except (ImportError, NotImplementedError, RuntimeError, Exception) as e:
+    UNSLOTH_IMPORT_ERROR = e
     # Allow import for factory even if deps missing (will be checked by factory)
     # Unsloth raises NotImplementedError/RuntimeError if no GPU found on import
     print(f"Warning: Unsloth imports failed (likely no GPU): {e}")
@@ -125,6 +127,9 @@ class UnslothEngineService(BaseEngineService):
         return self.models_config
 
     async def get_model_and_tokenizer(self, model_id: str):
+        if FastLanguageModel is None:
+            raise RuntimeError(f"Unsloth library is not available. Import error: {UNSLOTH_IMPORT_ERROR}")
+
         if model_id not in self.loaded_models:
             print(f"Loading Unsloth model: {model_id}")
 
@@ -136,6 +141,9 @@ class UnslothEngineService(BaseEngineService):
             local_path = self.models_dir / sanitized_name
             if (local_path / ".completed").exists():
                 path_to_load = str(local_path)
+
+            if str(path_to_load).lower().endswith(".gguf"):
+                raise ValueError(f"Unsloth cannot load GGUF files directly ({path_to_load}). Please use a HuggingFace SafeTensors model or directory.")
 
             # 2. Load using FastLanguageModel
             # Note: Unsloth loads model + tokenizer
@@ -205,7 +213,7 @@ class UnslothEngineService(BaseEngineService):
     def _run_training_job(self, job_id: str, config: Dict):
         try:
             if FastLanguageModel is None:
-                raise RuntimeError("Unsloth library not available. Please install 'unsloth' and compatible CUDA drivers.")
+                raise RuntimeError(f"Unsloth library not available. Error: {UNSLOTH_IMPORT_ERROR}")
 
             self.active_jobs[job_id]["status"] = "training"
             model_id = config.get("model_id")
