@@ -17,7 +17,7 @@
         "package": "npm run build && npm run build:backend && electron-builder build --mac",
         "package:win": "npm run build && npm run build:backend:win && electron-builder build --win",
         "build:backend": "cd backend && /opt/anaconda3/bin/python3 -m PyInstaller spec/silicon_server.spec --clean --noconfirm",
-        "build:backend:win": "cd backend && python -m PyInstaller spec/silicon_server.spec --clean --noconfirm"
+        "build:backend:win": "cd backend && pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 && pip install .[dev] && python -m PyInstaller spec/silicon_server.spec --clean --noconfirm"
     },
     "build": {
         "appId": "com.siliconstudio.app",
