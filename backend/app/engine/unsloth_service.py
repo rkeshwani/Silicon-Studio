@@ -6,13 +6,21 @@ from pathlib import Path
 import torch
 from app.engine.base import BaseEngineService
 
+# Patch transformers for Unsloth compatibility (PreTrainedConfig vs PretrainedConfig)
+try:
+    import transformers
+    if not hasattr(transformers, "PreTrainedConfig"):
+        transformers.PreTrainedConfig = transformers.PretrainedConfig
+except ImportError:
+    pass
+
 # Unsloth specific imports
 try:
     from unsloth import FastLanguageModel
     from trl import SFTTrainer
     from transformers import TrainingArguments
     from datasets import load_dataset
-except (ImportError, NotImplementedError, RuntimeError) as e:
+except (ImportError, NotImplementedError, RuntimeError, Exception) as e:
     # Allow import for factory even if deps missing (will be checked by factory)
     # Unsloth raises NotImplementedError/RuntimeError if no GPU found on import
     print(f"Warning: Unsloth imports failed (likely no GPU): {e}")
